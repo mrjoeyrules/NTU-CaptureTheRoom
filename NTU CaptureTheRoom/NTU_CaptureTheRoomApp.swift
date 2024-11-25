@@ -30,7 +30,7 @@ struct NTU_CaptureTheRoomApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            Registration()
         }
     }
 }
