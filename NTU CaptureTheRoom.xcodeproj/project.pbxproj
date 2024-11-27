@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5A4FC9AE2CF7AB03003A3999 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 5A4FC9AD2CF7AB03003A3999 /* GoogleSignIn */; };
+		5A4FC9B02CF7AB03003A3999 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 5A4FC9AF2CF7AB03003A3999 /* GoogleSignInSwift */; };
 		5A517E0F2CF4D61600EA6112 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5A517E0E2CF4D61600EA6112 /* FirebaseAnalytics */; };
 		5A517E112CF4D61600EA6112 /* FirebaseAnalyticsOnDeviceConversion in Frameworks */ = {isa = PBXBuildFile; productRef = 5A517E102CF4D61600EA6112 /* FirebaseAnalyticsOnDeviceConversion */; };
 		5A517E132CF4D61600EA6112 /* FirebaseAnalyticsWithoutAdIdSupport in Frameworks */ = {isa = PBXBuildFile; productRef = 5A517E122CF4D61600EA6112 /* FirebaseAnalyticsWithoutAdIdSupport */; };
@@ -83,11 +85,13 @@
 				5A517E272CF4D61600EA6112 /* FirebaseFirestoreCombine-Community in Frameworks */,
 				5A517E3D2CF4D61600EA6112 /* FirebaseVertexAI in Frameworks */,
 				5A517E402CF4D74200EA6112 /* GoogleMaps in Frameworks */,
+				5A4FC9AE2CF7AB03003A3999 /* GoogleSignIn in Frameworks */,
 				5A517E292CF4D61600EA6112 /* FirebaseFunctions in Frameworks */,
 				5A517E352CF4D61600EA6112 /* FirebasePerformance in Frameworks */,
 				5A517E3B2CF4D61600EA6112 /* FirebaseStorageCombine-Community in Frameworks */,
 				5A517E372CF4D61600EA6112 /* FirebaseRemoteConfig in Frameworks */,
 				5A517E212CF4D61600EA6112 /* FirebaseDatabase in Frameworks */,
+				5A4FC9B02CF7AB03003A3999 /* GoogleSignInSwift in Frameworks */,
 				5A517E232CF4D61600EA6112 /* FirebaseDynamicLinks in Frameworks */,
 				5A517E152CF4D61600EA6112 /* FirebaseAppCheck in Frameworks */,
 				5A517E192CF4D61600EA6112 /* FirebaseAuth in Frameworks */,
@@ -190,6 +194,8 @@
 				5A517E3A2CF4D61600EA6112 /* FirebaseStorageCombine-Community */,
 				5A517E3C2CF4D61600EA6112 /* FirebaseVertexAI */,
 				5A517E3F2CF4D74200EA6112 /* GoogleMaps */,
+				5A4FC9AD2CF7AB03003A3999 /* GoogleSignIn */,
+				5A4FC9AF2CF7AB03003A3999 /* GoogleSignInSwift */,
 			);
 			productName = "NTU CaptureTheRoom";
 			productReference = 5A517DDA2CF4D4F800EA6112 /* NTU CaptureTheRoom.app */;
@@ -276,6 +282,7 @@
 			packageReferences = (
 				5A517E0D2CF4D61600EA6112 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				5A517E3E2CF4D74200EA6112 /* XCRemoteSwiftPackageReference "ios-maps-sdk" */,
+				5A4FC9AC2CF7AB03003A3999 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 5A517DDB2CF4D4F800EA6112 /* Products */;
@@ -475,12 +482,15 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "NTU CaptureTheRoom/NTU CaptureTheRoom.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"NTU CaptureTheRoom/Preview Content\"";
-				DEVELOPMENT_TEAM = 7P9WD8ZHVJ;
+				DEVELOPMENT_TEAM = 22PP34RZZR;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "NTU-CaptureTheRoom-Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -491,8 +501,9 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "JosephCuestaAcevedo.NTU-CaptureTheRoom";
+				PRODUCT_BUNDLE_IDENTIFIER = JosephCuestaAcevedo.CTR;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -504,12 +515,15 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "NTU CaptureTheRoom/NTU CaptureTheRoom.entitlements";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"NTU CaptureTheRoom/Preview Content\"";
 				DEVELOPMENT_TEAM = 7P9WD8ZHVJ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "NTU-CaptureTheRoom-Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -520,8 +534,9 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "JosephCuestaAcevedo.NTU-CaptureTheRoom";
+				PRODUCT_BUNDLE_IDENTIFIER = JosephCuestaAcevedo.NTUCTR;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -642,6 +657,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		5A4FC9AC2CF7AB03003A3999 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
 		5A517E0D2CF4D61600EA6112 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
@@ -661,6 +684,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		5A4FC9AD2CF7AB03003A3999 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5A4FC9AC2CF7AB03003A3999 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		5A4FC9AF2CF7AB03003A3999 /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5A4FC9AC2CF7AB03003A3999 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
+		};
 		5A517E0E2CF4D61600EA6112 /* FirebaseAnalytics */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 5A517E0D2CF4D61600EA6112 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
