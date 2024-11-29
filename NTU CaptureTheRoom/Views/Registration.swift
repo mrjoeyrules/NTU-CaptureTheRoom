@@ -30,7 +30,10 @@ struct Registration: View{
     @State var confirmPassword: String = "" // password re-entered
     @State var showAlert: Bool = false // show alert flag
     @State var isGoogleLogIn: Bool = false
+    @State var isGitLogin: Bool = false
+    @State var isTwitterLogin: Bool = false
     @State var activeAlert: ActiveAlert = .first // which alert flag
+    @State var isEmailLogin: Bool = false
     let logo = "NTUShieldLogo" // name of logo picture
     
     func RegisterX(){
@@ -44,6 +47,10 @@ struct Registration: View{
                         print(error?.localizedDescription)
                     }
                 }
+                self.isTwitterLogin.toggle()
+                NavigationLink(destination: TeamSelection()){
+                    
+                }
             }
             
         }
@@ -51,26 +58,26 @@ struct Registration: View{
     func RegisterGithub(){
         print("Register with Github")
         gitProvider.getCredentialWith(nil) { gitCredential, error in
-          if error != nil {
-              print(error?.localizedDescription)
-          }
-          if gitCredential != nil {
-              Auth.auth().signIn(with: gitCredential!) { authResult, error in
-              if error != nil {
-                  print(error?.localizedDescription)
-              }
-              // User is signed in.
-              // IdP data available in authResult.additionalUserInfo.profile.
-
-                  guard let oauthCredential = authResult?.credential as? OAuthCredential else { return }
-              // GitHub OAuth access token can also be retrieved by:
-              // oauthCredential.accessToken
-              // GitHub OAuth ID token can be retrieved by calling:
-              // oauthCredential.idToken
+            if error != nil {
+                print(error?.localizedDescription)
             }
-          }
+            if gitCredential != nil {
+                Auth.auth().signIn(with: gitCredential!) { authResult, error in
+                    if error != nil {
+                        print(error?.localizedDescription)
+                    }
+                    self.isGitLogin.toggle()
+                    // User is signed in.
+                    // IdP data available in authResult.additionalUserInfo.profile.
+                    
+                    guard let oauthCredential = authResult?.credential as? OAuthCredential else { return }
+                    // GitHub OAuth access token can also be retrieved by:
+                    // oauthCredential.accessToken
+                    // GitHub OAuth ID token can be retrieved by calling:
+                    // oauthCredential.idToken
+                }
+            }
         }
-        
     }
     
     
@@ -127,154 +134,164 @@ struct Registration: View{
     
     
     var body: some View{
+        
         NavigationStack{
-            VStack{
-                Image(logo)
-                    .resizable()
-                    .frame(width: 100 , height: 100)
-                    .padding()
-                ZStack{
-                    Text("Welcome to the NTU Capture The Room App \n Please register to use the app")
+            if isGitLogin == true || isGoogleLogIn == true || isTwitterLogin == true || isEmailLogin == true{
+                TeamSelection()
+            }
+            else{
+                VStack{
+                    Image(logo)
+                        .resizable()
+                        .frame(width: 100 , height: 100)
                         .padding()
-                        .foregroundStyle(Color.white)
-                        .multilineTextAlignment(.center)
-                }
-                ZStack {
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(Color.white) // Background color matches the rectangle
-                        .frame(height: 50)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color.actionColour, lineWidth: 1) // Border color
-                        )
-                    TextField("",text: $email, prompt: Text("Email").foregroundStyle(Color.black.opacity(0.5)))
-                        .autocapitalization(.none)
-                        .textContentType(.emailAddress)
-                        .foregroundColor(.black) // Text color
-                        .padding(.horizontal) // Padding inside the text field
-                        .frame(height: 50)
-                        
-                }
-                .padding(.horizontal) // Outer padding
-                
-                ZStack {
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(Color.white) // Background color matches the rectangle
-                        .frame(height: 50)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color.actionColour, lineWidth: 1) // Border color
-                        )
-                    SecureField("", text: $password, prompt: Text("Password").foregroundStyle(Color.black.opacity(0.5)))
-                        .autocapitalization(.none)
-                        .textContentType(.name)
-                        .foregroundColor(.black) // Text color
-                        .padding(.horizontal) // Padding inside the text field
-                        .frame(height: 50)
-                }
-                .padding(.horizontal) // Outer padding
-                
-                ZStack {
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(Color.white) // Background color matches the rectangle
-                        .frame(height: 50)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color.actionColour, lineWidth: 1) // Border color
-                        )
-                    SecureField("", text: $confirmPassword, prompt: Text("Confirm Password").foregroundStyle(Color.black.opacity(0.5)))
-                        .autocapitalization(.none)
-                        .textContentType(.name)
-                        .foregroundColor(.black) // Text color
-                        .padding(.horizontal)// Padding inside the text field
-                        .frame(height: 50)
-                }
-                .padding(.horizontal) // Outer padding
-                
-                ZStack{
-                    Button(action: Register){
-                        Text("Register")
+                    ZStack{
+                        Text("Welcome to the NTU Capture The Room App \n Please register to use the app")
                             .padding()
-                            .background(Color.actionColour)
                             .foregroundStyle(Color.white)
+                            .multilineTextAlignment(.center)
+                    }
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Color.white) // Background color matches the rectangle
+                            .frame(height: 50)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 20)
-                                    .stroke(Color.actionColour)
+                                    .stroke(Color.actionColour, lineWidth: 1) // Border color
                             )
+                        TextField("",text: $email, prompt: Text("Email").foregroundStyle(Color.black.opacity(0.5)))
+                            .autocapitalization(.none)
+                            .textContentType(.emailAddress)
+                            .foregroundColor(.black) // Text color
+                            .padding(.horizontal) // Padding inside the text field
+                            .frame(height: 50)
                         
-                            .alert(isPresented: $showAlert){
-                                switch activeAlert {
-                                case .first:
-                                    return Alert(title: Text("Passwords do not match"), message: Text("Ensure that your passwords match"), dismissButton: .default(Text("Try Again")))
-                                case .second:
-                                    return Alert(title: Text("Account Created"), message: Text("Your account has been created"), dismissButton: .default(Text("Continue")))
-                                } // code found from https://stackoverflow.com/questions/58069516/how-can-i-have-two-alerts-on-one-view-in-swiftui
-                                //User John M
-                                
-                            }
-                        // Alert code is needed to display to different alerts based on one button.
                     }
-                }
-                ZStack{
-                    Text("Or Register with one of the following options")
-                        .foregroundColor(.white)
-                        .padding()
-                }
-                ZStack{
-                    HStack{
-                        Button{
-                            RegisterGoogle()
-                        } label: {
-                            VStack{
-                                Image("GoogleLogo")
-                                    .resizable()
-                                    .frame(width: 30, height: 30)
-                                    .padding()
-                                    .background(Color.googleColour)
-                            }
-                        }
-                        .padding()
-                        
-                        Button{
-                            RegisterX()
-                        } label: {
-                            VStack{
-                                Image("XLogo")
-                                    .resizable()
-                                    .frame(width: 30, height: 30)
-                                    .padding()
-                                    .background(Color.black)
-                            }
-                        }
-                        .padding()
-                        
-                        Button{
-                            RegisterGithub()
-                        } label: {
-                            VStack{
-                                Image("GithubLogo")
-                                    .resizable()
-                                    .frame(width: 30, height: 30)
-                                    .padding()
-                                    .background(Color.githubColour)
-                            }
-                        }
-                        .padding()
+                    .padding(.horizontal) // Outer padding
+                    
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Color.white) // Background color matches the rectangle
+                            .frame(height: 50)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .stroke(Color.actionColour, lineWidth: 1) // Border color
+                            )
+                        SecureField("", text: $password, prompt: Text("Password").foregroundStyle(Color.black.opacity(0.5)))
+                            .autocapitalization(.none)
+                            .textContentType(.name)
+                            .foregroundColor(.black) // Text color
+                            .padding(.horizontal) // Padding inside the text field
+                            .frame(height: 50)
                     }
-                }
-                ZStack{
-                    NavigationLink(destination: Login()){
-                        Text("Already have an account?")
+                    .padding(.horizontal) // Outer padding
+                    
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Color.white) // Background color matches the rectangle
+                            .frame(height: 50)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .stroke(Color.actionColour, lineWidth: 1) // Border color
+                            )
+                        SecureField("", text: $confirmPassword, prompt: Text("Confirm Password").foregroundStyle(Color.black.opacity(0.5)))
+                            .autocapitalization(.none)
+                            .textContentType(.name)
+                            .foregroundColor(.black) // Text color
+                            .padding(.horizontal)// Padding inside the text field
+                            .frame(height: 50)
+                    }
+                    .padding(.horizontal) // Outer padding
+                    
+                    ZStack{
+                        Button(action: Register){
+                            Text("Register")
+                                .padding()
+                                .background(Color.actionColour)
+                                .foregroundStyle(Color.white)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .stroke(Color.actionColour)
+                                )
+                            
+                                .alert(isPresented: $showAlert){
+                                    switch activeAlert {
+                                    case .first:
+                                        return Alert(title: Text("Passwords do not match"), message: Text("Ensure that your passwords match"), dismissButton: .default(Text("Try Again")))
+                                    case .second:
+                                        return Alert(title: Text("Account Created"), message: Text("Your account has been created"), dismissButton: .default(Text("Continue")){
+                                            isEmailLogin.toggle()
+                                        }
+                                    )
+                                        
+                                    } // code found from https://stackoverflow.com/questions/58069516/how-can-i-have-two-alerts-on-one-view-in-swiftui
+                                    //User John M
+                                    
+                                }
+                            // Alert code is needed to display to different alerts based on one button.
+                        }
+                    }
+                    ZStack{
+                        Text("Or Register with one of the following options")
                             .foregroundColor(.white)
-                            .underline()
                             .padding()
                     }
+                    ZStack{
+                        HStack{
+                            Button{
+                                RegisterGoogle()
+                            } label: {
+                                VStack{
+                                    Image("GoogleLogo")
+                                        .resizable()
+                                        .frame(width: 30, height: 30)
+                                        .padding()
+                                        .background(Color.googleColour)
+                                }
+                            }
+                            .padding()
+                            
+                            Button{
+                                RegisterX()
+                            } label: {
+                                VStack{
+                                    Image("XLogo")
+                                        .resizable()
+                                        .frame(width: 30, height: 30)
+                                        .padding()
+                                        .background(Color.black)
+                                }
+                            }
+                            .padding()
+                            
+                            Button{
+                                RegisterGithub()
+                            } label: {
+                                VStack{
+                                    Image("GithubLogo")
+                                        .resizable()
+                                        .frame(width: 30, height: 30)
+                                        .padding()
+                                        .background(Color.githubColour)
+                                }
+                            }
+                            .padding()
+                        }
+                    }
+                    ZStack{
+                        NavigationLink(destination: Login()){
+                            Text("Already have an account?")
+                                .foregroundColor(.white)
+                                .underline()
+                                .padding()
+                        }
+                    }
                 }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background{
-                Color.background
-                    .ignoresSafeArea()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background{
+                    Color.background
+                        .ignoresSafeArea()
+                }
             }
         }
     }
