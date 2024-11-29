@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>1087587490413-n4hib4vcg8i7vkt8fdskm411ers8qnk5.apps.googleusercontent.com</string>
+	<string>1087587490413-uel00co9nn2l1qtbfjpb3aogfomgm30u.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.1087587490413-n4hib4vcg8i7vkt8fdskm411ers8qnk5</string>
+	<string>com.googleusercontent.apps.1087587490413-uel00co9nn2l1qtbfjpb3aogfomgm30u</string>
 	<key>API_KEY</key>
 	<string>AIzaSyCdZ4uVvkwdctYRaAMa5N95KO8CMqYsZ9A</string>
 	<key>GCM_SENDER_ID</key>
@@ -13,7 +13,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>JosephCuestaAcevedo.NTU-CaptureTheRoom</string>
+	<string>JosephCuestaAcevedo.NTUCTR</string>
 	<key>PROJECT_ID</key>
 	<string>capturetheroom-ntu</string>
 	<key>STORAGE_BUCKET</key>
@@ -29,6 +29,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:1087587490413:ios:0cde819c7007bbd93b3d64</string>
+	<string>1:1087587490413:ios:466f7e646485b8733b3d64</string>
 </dict>
 </plist>
