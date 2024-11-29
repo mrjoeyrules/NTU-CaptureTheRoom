@@ -21,7 +21,9 @@ enum ActiveAlert{ // set cases for the active alert
 
 
 struct Registration: View{
-    let provider = OAuthProvider(providerID: "twitter.com")
+    let twitterProvider = OAuthProvider(providerID: "twitter.com")
+    let gitProvider = OAuthProvider(providerID: "github.com")
+    
     // variables for various uses within page.
     @State var email: String = "" // inputed email
     @State var password: String = "" // inputed password
@@ -32,12 +34,12 @@ struct Registration: View{
     let logo = "NTUShieldLogo" // name of logo picture
     
     func RegisterX(){
-        provider.getCredentialWith(nil){ credential, error in
+        twitterProvider.getCredentialWith(nil){ twitterCredential, error in
             if error != nil{
                 print(error?.localizedDescription)
             }
-            if credential != nil{
-                Auth.auth().signIn(with: credential!){ authResult, error in
+            if twitterCredential != nil{
+                Auth.auth().signIn(with: twitterCredential!){ authResult, error in
                     if error != nil{
                         print(error?.localizedDescription)
                     }
@@ -46,9 +48,29 @@ struct Registration: View{
             
         }
     }
-    
-    func RegisterFacebook(){
-        print("Register with Facebook")
+    func RegisterGithub(){
+        print("Register with Github")
+        gitProvider.getCredentialWith(nil) { gitCredential, error in
+          if error != nil {
+              print(error?.localizedDescription)
+          }
+          if gitCredential != nil {
+              Auth.auth().signIn(with: gitCredential!) { authResult, error in
+              if error != nil {
+                  print(error?.localizedDescription)
+              }
+              // User is signed in.
+              // IdP data available in authResult.additionalUserInfo.profile.
+
+                  guard let oauthCredential = authResult?.credential as? OAuthCredential else { return }
+              // GitHub OAuth access token can also be retrieved by:
+              // oauthCredential.accessToken
+              // GitHub OAuth ID token can be retrieved by calling:
+              // oauthCredential.idToken
+            }
+          }
+        }
+        
     }
     
     
@@ -125,10 +147,28 @@ struct Registration: View{
                             RoundedRectangle(cornerRadius: 20)
                                 .stroke(Color.actionColour, lineWidth: 1) // Border color
                         )
-                    TextField("Email", text: $email)
+                    TextField("",text: $email, prompt: Text("Email").foregroundStyle(Color.black.opacity(0.5)))
                         .autocapitalization(.none)
                         .textContentType(.emailAddress)
-                        .foregroundColor(.white) // Text color
+                        .foregroundColor(.black) // Text color
+                        .padding(.horizontal) // Padding inside the text field
+                        .frame(height: 50)
+                        
+                }
+                .padding(.horizontal) // Outer padding
+                
+                ZStack {
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(Color.white) // Background color matches the rectangle
+                        .frame(height: 50)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(Color.actionColour, lineWidth: 1) // Border color
+                        )
+                    SecureField("", text: $password, prompt: Text("Password").foregroundStyle(Color.black.opacity(0.5)))
+                        .autocapitalization(.none)
+                        .textContentType(.name)
+                        .foregroundColor(.black) // Text color
                         .padding(.horizontal) // Padding inside the text field
                         .frame(height: 50)
                 }
@@ -142,27 +182,10 @@ struct Registration: View{
                             RoundedRectangle(cornerRadius: 20)
                                 .stroke(Color.actionColour, lineWidth: 1) // Border color
                         )
-                    SecureField("Password", text: $password)
+                    SecureField("", text: $confirmPassword, prompt: Text("Confirm Password").foregroundStyle(Color.black.opacity(0.5)))
                         .autocapitalization(.none)
                         .textContentType(.name)
-                        .foregroundColor(.white) // Text color
-                        .padding(.horizontal) // Padding inside the text field
-                        .frame(height: 50)
-                }
-                .padding(.horizontal) // Outer padding
-                
-                ZStack {
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(Color.white) // Background color matches the rectangle
-                        .frame(height: 50)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color.actionColour, lineWidth: 1) // Border color
-                        )
-                    SecureField("Confirm Password", text: $confirmPassword)
-                        .autocapitalization(.none)
-                        .textContentType(.name)
-                        .foregroundColor(.white) // Text color
+                        .foregroundColor(.black) // Text color
                         .padding(.horizontal)// Padding inside the text field
                         .frame(height: 50)
                 }
@@ -226,14 +249,14 @@ struct Registration: View{
                         .padding()
                         
                         Button{
-                            RegisterFacebook()
+                            RegisterGithub()
                         } label: {
                             VStack{
-                                Image("FacebookLogo")
+                                Image("GithubLogo")
                                     .resizable()
                                     .frame(width: 30, height: 30)
                                     .padding()
-                                    .background(Color.facebookColour)
+                                    .background(Color.githubColour)
                             }
                         }
                         .padding()
