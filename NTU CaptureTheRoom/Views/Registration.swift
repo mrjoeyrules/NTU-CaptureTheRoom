@@ -118,6 +118,9 @@ struct Registration: View{
     
     func Register(){ // runs code when register button is pressed
         self.showAlert = false
+        if email.isEmpty || password.isEmpty || confirmPassword.isEmpty{
+            self.activeAlert = .second
+        }
         if password != confirmPassword{ // if passwords dont match flag as invalid
             self.activeAlert = .first
             self.showAlert = true
@@ -141,13 +144,13 @@ struct Registration: View{
             }
             else{
                 VStack{
-                    Image(logo)
+                    Image(logo) // ntu logo at top
                         .resizable()
                         .frame(width: 100 , height: 100)
                         .padding()
                     ZStack{
                         Text("Welcome to the NTU Capture The Room App \n Please register to use the app")
-                            .padding()
+                            .padding() // welcome text
                             .foregroundStyle(Color.white)
                             .multilineTextAlignment(.center)
                     }
@@ -156,10 +159,10 @@ struct Registration: View{
                             .fill(Color.white) // Background color matches the rectangle
                             .frame(height: 50)
                             .overlay(
-                                RoundedRectangle(cornerRadius: 20)
+                                RoundedRectangle(cornerRadius: 20) // creates a rectangle to cover and match the text field
                                     .stroke(Color.actionColour, lineWidth: 1) // Border color
                             )
-                        TextField("",text: $email, prompt: Text("Email").foregroundStyle(Color.black.opacity(0.5)))
+                        TextField("",text: $email, prompt: Text("Email").foregroundStyle(Color.black.opacity(0.5))) // email text field
                             .autocapitalization(.none)
                             .textContentType(.emailAddress)
                             .foregroundColor(.black) // Text color
@@ -177,7 +180,7 @@ struct Registration: View{
                                 RoundedRectangle(cornerRadius: 20)
                                     .stroke(Color.actionColour, lineWidth: 1) // Border color
                             )
-                        SecureField("", text: $password, prompt: Text("Password").foregroundStyle(Color.black.opacity(0.5)))
+                        SecureField("", text: $password, prompt: Text("Password").foregroundStyle(Color.black.opacity(0.5))) // password secure field
                             .autocapitalization(.none)
                             .textContentType(.name)
                             .foregroundColor(.black) // Text color
@@ -194,7 +197,7 @@ struct Registration: View{
                                 RoundedRectangle(cornerRadius: 20)
                                     .stroke(Color.actionColour, lineWidth: 1) // Border color
                             )
-                        SecureField("", text: $confirmPassword, prompt: Text("Confirm Password").foregroundStyle(Color.black.opacity(0.5)))
+                        SecureField("", text: $confirmPassword, prompt: Text("Confirm Password").foregroundStyle(Color.black.opacity(0.5))) // reconfirm password
                             .autocapitalization(.none)
                             .textContentType(.name)
                             .foregroundColor(.black) // Text color
@@ -204,7 +207,7 @@ struct Registration: View{
                     .padding(.horizontal) // Outer padding
                     
                     ZStack{
-                        Button(action: Register){
+                        Button(action: Register){ // button to register an email account
                             Text("Register")
                                 .padding()
                                 .background(Color.actionColour)
@@ -214,13 +217,13 @@ struct Registration: View{
                                         .stroke(Color.actionColour)
                                 )
                             
-                                .alert(isPresented: $showAlert){
+                                .alert(isPresented: $showAlert){ //different alerts that can pop up when registering
                                     switch activeAlert {
                                     case .first:
-                                        return Alert(title: Text("Passwords do not match"), message: Text("Ensure that your passwords match"), dismissButton: .default(Text("Try Again")))
+                                        return Alert(title: Text("Passwords do not match"), message: Text("Ensure that your passwords match"), dismissButton: .default(Text("Try Again"))) // is passwords do not match
                                     case .second:
                                         return Alert(title: Text("Account Created"), message: Text("Your account has been created"), dismissButton: .default(Text("Continue")){
-                                            isEmailLogin.toggle()
+                                            isEmailLogin.toggle() // if everyhting is ok
                                         }
                                     )
                                         
