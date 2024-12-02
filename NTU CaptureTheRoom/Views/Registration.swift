@@ -15,7 +15,7 @@ import FirebaseCore
 import GoogleSignIn
 
 enum ActiveAlert{ // set cases for the active alert
-    case first, second
+    case first, second, third
 }
 
 
@@ -35,6 +35,9 @@ struct Registration: View{
     @State var activeAlert: ActiveAlert = .first // which alert flag
     @State var isEmailLogin: Bool = false
     let logo = "NTUShieldLogo" // name of logo picture
+    
+    
+    
     
     func RegisterX(){
         twitterProvider.getCredentialWith(nil){ twitterCredential, error in
@@ -116,7 +119,7 @@ struct Registration: View{
     
     
     
-    func Register(){ // runs code when register button is pressed
+    func register(){ // runs code when register button is pressed
         self.showAlert = false
         if email.isEmpty || password.isEmpty || confirmPassword.isEmpty{
             self.activeAlert = .second
@@ -128,9 +131,17 @@ struct Registration: View{
         }
         else{
             
-            Auth.auth().createUser(withEmail: email, password: password) { result, error in        } // creates a user in firebase authentication with email and password entered.
-            self.activeAlert = .second
-            self.showAlert = true
+            Auth.auth().createUser(withEmail: email, password: password) { result, error in
+                if error?.localizedDescription == "The email address is already in use by another account."{
+                    self.activeAlert = .third
+                    self.showAlert = true
+                }
+                else{
+                    self.activeAlert = .second
+                    self.showAlert = true
+                }
+            } // creates a user in firebase authentication with email and password entered.
+            
             // creates a user with email and password in firebase auth
         }
     }
@@ -205,17 +216,24 @@ struct Registration: View{
                             .frame(height: 50)
                     }
                     .padding(.horizontal) // Outer padding
-                    
                     ZStack{
-                        Button(action: Register){ // button to register an email account
+                        NavigationLink(destination: ForgotPassword()){
+                            Text("Forgot Password?")
+                                .foregroundColor(.white)
+                                .underline()
+                                .padding()
+                        }
+                        
+                    }
+                    ZStack{
+                        Button(action: register){ // button to register an email account
                             Text("Register")
                                 .padding()
-                                .background(Color.actionColour)
                                 .foregroundStyle(Color.white)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .stroke(Color.actionColour)
-                                )
+                                .background(
+                                    RoundedRectangle(
+                                        cornerRadius: 20, style: .continuous)
+                                    .fill(.actionColour))
                             
                                 .alert(isPresented: $showAlert){ //different alerts that can pop up when registering
                                     switch activeAlert {
@@ -225,7 +243,9 @@ struct Registration: View{
                                         return Alert(title: Text("Account Created"), message: Text("Your account has been created"), dismissButton: .default(Text("Continue")){
                                             isEmailLogin.toggle() // if everyhting is ok
                                         }
-                                    )
+                                        )
+                                    case .third:
+                                        return Alert(title: Text("Email already is use"), message: Text("This email is already in use, sign in with that account or create another"), dismissButton: .default(Text("Try again")))
                                         
                                     } // code found from https://stackoverflow.com/questions/58069516/how-can-i-have-two-alerts-on-one-view-in-swiftui
                                     //User John M
