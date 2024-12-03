@@ -12,7 +12,7 @@ import GoogleSignIn
 import FirebaseAuth
 
 enum ActiveAlert2{ // set cases for the active alert
-    case first, second, third
+    case first, second, third, fourth, fifth, sixth
 }
 
 
@@ -25,7 +25,7 @@ struct Login: View {
     @State var isGoogleLogIn: Bool = false
     @State var isGitLogin: Bool = false
     @State var isTwitterLogin: Bool = false
-    @State var activeAlert: ActiveAlert = .first
+    @State var activeAlert: ActiveAlert2 = .first
     @State  var isLoggedIn: Bool = false
     let logo = "NTUShieldLogo" // name of logo picture
     
@@ -52,9 +52,17 @@ struct Login: View {
                     print(err.localizedDescription)
                     return
                 }
-                guard let user = result?.user else {return}
-                print(user.displayName)
-                self.isGoogleLogIn.toggle()
+                else if error?.localizedDescription == "An account already exists with the same email address but different sign-in credentials. Sign in using a provider associated with this email address."{
+                    self.activeAlert = .fourth
+                }
+                else if error?.localizedDescription == "The user account has been disabled by an administrator."{
+                    self.activeAlert = .fifth
+                }
+                else if error == nil{
+                    guard let user = result?.user else {return}
+                    print(user.displayName)
+                    self.isGoogleLogIn.toggle()
+                }
             }
         }
         
@@ -70,11 +78,18 @@ struct Login: View {
                     if error != nil{
                         print(error?.localizedDescription)
                     }
-                }
-                self.isTwitterLogin.toggle()
-                NavigationLink(destination: TeamSelection()){
+                    else if error?.localizedDescription == "An account already exists with the same email address but different sign-in credentials. Sign in using a provider associated with this email address."{
+                        self.activeAlert = .fourth
+                    }
+                    else if error?.localizedDescription == "The user account has been disabled by an administrator."{
+                        self.activeAlert = .fifth
+                    }
+                    else if error == nil{
+                        self.isTwitterLogin.toggle()
+                    }
                     
                 }
+                
             }
             
         }
@@ -91,15 +106,24 @@ struct Login: View {
                     if error != nil {
                         print(error?.localizedDescription)
                     }
-                    self.isGitLogin.toggle()
-                    // User is signed in.
-                    // IdP data available in authResult.additionalUserInfo.profile.
-                    
-                    guard let oauthCredential = authResult?.credential as? OAuthCredential else { return }
-                    // GitHub OAuth access token can also be retrieved by:
-                    // oauthCredential.accessToken
-                    // GitHub OAuth ID token can be retrieved by calling:
-                    // oauthCredential.idToken
+                    else if error?.localizedDescription == "An account already exists with the same email address but different sign-in credentials. Sign in using a provider associated with this email address."{
+                        self.activeAlert = .fourth
+                    }
+                    else if error?.localizedDescription == "The user account has been disabled by an administrator."{
+                        self.activeAlert = .fifth
+                    }
+                    else if error == nil{
+                        self.isGitLogin.toggle()
+                        // User is signed in.
+                        // IdP data available in authResult.additionalUserInfo.profile.
+                        
+                        guard let oauthCredential = authResult?.credential as? OAuthCredential else { return }
+                        // GitHub OAuth access token can also be retrieved by:
+                        // oauthCredential.accessToken
+                        // GitHub OAuth ID token can be retrieved by calling:
+                        // oauthCredential.idToken
+                        
+                    }
                 }
             }
         }
@@ -109,16 +133,24 @@ struct Login: View {
     func login(){
         self.showAlert = false
         if email.isEmpty || password.isEmpty{
-            self.activeAlert = .second
+            self.activeAlert = .first
+            self.showAlert.toggle()
             return
         }
         Auth.auth().signIn(withEmail: email, password: password){ (result, error) in
-            if error != nil{
-                print(error?.localizedDescription ?? "")
-            }else{
+            print(error?.localizedDescription)
+            if error?.localizedDescription == "The supplied auth credential is malformed or has expired."{
+                self.activeAlert = .sixth
+                self.showAlert.toggle()
+            }
+            else if error?.localizedDescription == "The user account has been disabled by an administrator."{
+                self.activeAlert = .fifth
+                self.showAlert.toggle()
+            }
+            else if error == nil{
                 print("success")
                 self.activeAlert = .second
-                self.showAlert = true
+                self.showAlert.toggle()
             }
         }
     }
@@ -174,7 +206,15 @@ struct Login: View {
                             .frame(height: 50)
                     }
                     .padding(.horizontal) // Outer padding
-                    
+                    ZStack{
+                        NavigationLink(destination: ForgotPassword()){
+                            Text("Forgot Password?")
+                                .foregroundColor(.white)
+                                .underline()
+                                .padding()
+                        }
+                        
+                    }
                     ZStack{
                         Button(action: login){ // button to register an email account
                             Text("Login")
@@ -189,15 +229,21 @@ struct Login: View {
                                 .alert(isPresented: $showAlert){ //different alerts that can pop up when registering
                                     switch activeAlert {
                                     case .first:
-                                        return Alert(title: Text("Passwords do not match"), message: Text("Ensure that your passwords match"), dismissButton: .default(Text("Try Again"))) // is passwords do not match
+                                        return Alert(title: Text("Email/Password is empty"), message: Text("Ensure that you enter an email and password"), dismissButton: .default(Text("Try Again"))) // is passwords do not match
                                     case .second:
                                         return Alert(title: Text("Account Created"), message: Text("Your account has been created"), dismissButton: .default(Text("Continue")){
                                             isLoggedIn.toggle()// if everyhting is ok
                                         }
                                         )
-                                        
                                     case .third:
                                         return Alert(title: Text("Email already is use"), message: Text("This email is already in use, sign in with that account or create another"), dismissButton: .default(Text("Try again")))
+                                        
+                                    case .fourth:
+                                        return Alert(title: Text("Account already exists with email"), message: Text("An account already exists using this email but it is with another provider. Please sign in with that provider"), dismissButton: .default(Text("Try Again")))
+                                    case .fifth:
+                                        return Alert(title: Text("Account is disabled"), message: Text("This account has been disabled by an admin, please seek user support"), dismissButton: .default(Text("Try Again")))
+                                    case .sixth:
+                                        return Alert(title: Text("Email or Password is incorrect"), message: Text("The entered email or password is incorrect. Please try again"), dismissButton: .default(Text("Try Again")))
                                         
                                     } // code found from https://stackoverflow.com/questions/58069516/how-can-i-have-two-alerts-on-one-view-in-swiftui
                                     //User John M

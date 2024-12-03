@@ -15,7 +15,7 @@ import FirebaseCore
 import GoogleSignIn
 
 enum ActiveAlert{ // set cases for the active alert
-    case first, second, third
+    case first, second, third, fourth, fifth, sixth, seventh
 }
 
 
@@ -49,11 +49,17 @@ struct Registration: View{
                     if error != nil{
                         print(error?.localizedDescription)
                     }
+                    else if error?.localizedDescription == "An account already exists with the same email address but different sign-in credentials. Sign in using a provider associated with this email address."{
+                        self.activeAlert = .sixth
+                    }
+                    else if error?.localizedDescription == "The user account has been disabled by an administrator."{
+                        self.activeAlert = .seventh
+                    }
+                    else if error == nil{
+                        self.isTwitterLogin.toggle()
+                    }
                 }
-                self.isTwitterLogin.toggle()
-                NavigationLink(destination: TeamSelection()){
-                    
-                }
+                
             }
             
         }
@@ -69,15 +75,24 @@ struct Registration: View{
                     if error != nil {
                         print(error?.localizedDescription)
                     }
-                    self.isGitLogin.toggle()
-                    // User is signed in.
-                    // IdP data available in authResult.additionalUserInfo.profile.
-                    
-                    guard let oauthCredential = authResult?.credential as? OAuthCredential else { return }
-                    // GitHub OAuth access token can also be retrieved by:
-                    // oauthCredential.accessToken
-                    // GitHub OAuth ID token can be retrieved by calling:
-                    // oauthCredential.idToken
+                    else if error?.localizedDescription == "An account already exists with the same email address but different sign-in credentials. Sign in using a provider associated with this email address."{
+                        self.activeAlert = .sixth
+                    }
+                    else if error?.localizedDescription == "The user account has been disabled by an administrator."{
+                        self.activeAlert = .seventh
+                    }
+                    else if error == nil{
+                        self.isGitLogin.toggle()
+                        // User is signed in.
+                        // IdP data available in authResult.additionalUserInfo.profile.
+                        
+                        guard let oauthCredential = authResult?.credential as? OAuthCredential else { return }
+                        // GitHub OAuth access token can also be retrieved by:
+                        // oauthCredential.accessToken
+                        // GitHub OAuth ID token can be retrieved by calling:
+                        // oauthCredential.idToken
+                    }
+                   
                 }
             }
         }
@@ -108,9 +123,18 @@ struct Registration: View{
                     print(err.localizedDescription)
                     return
                 }
-                guard let user = result?.user else {return}
-                print(user.displayName)
-                self.isGoogleLogIn.toggle()
+                else if error?.localizedDescription == "An account already exists with the same email address but different sign-in credentials. Sign in using a provider associated with this email address."{
+                    self.activeAlert = .sixth
+                }
+                else if error?.localizedDescription == "The user account has been disabled by an administrator."{
+                    self.activeAlert = .seventh
+                }
+                else if error == nil{
+                    guard let user = result?.user else {return}
+                    print(user.displayName)
+                    self.isGoogleLogIn.toggle()
+                }
+                
             }
         }
         
@@ -122,23 +146,33 @@ struct Registration: View{
     func register(){ // runs code when register button is pressed
         self.showAlert = false
         if email.isEmpty || password.isEmpty || confirmPassword.isEmpty{
-            self.activeAlert = .second
+            self.activeAlert = .first
+            self.showAlert.toggle()
         }
         if password != confirmPassword{ // if passwords dont match flag as invalid
             self.activeAlert = .first
-            self.showAlert = true
+            self.showAlert.toggle()
             
         }
         else{
             
             Auth.auth().createUser(withEmail: email, password: password) { result, error in
+                print(error?.localizedDescription)
                 if error?.localizedDescription == "The email address is already in use by another account."{
                     self.activeAlert = .third
-                    self.showAlert = true
+                    self.showAlert.toggle()
+                }
+                else if error?.localizedDescription == "An internal error has occurred, print and inspect the error details for more information."{
+                    self.activeAlert = .fourth
+                    self.showAlert.toggle()
+                }
+                else if error?.localizedDescription == "The email address is badly formatted."{
+                    self.activeAlert = .fifth
+                    self.showAlert.toggle()
                 }
                 else{
                     self.activeAlert = .second
-                    self.showAlert = true
+                    self.showAlert.toggle()
                 }
             } // creates a user in firebase authentication with email and password entered.
             
@@ -217,15 +251,6 @@ struct Registration: View{
                     }
                     .padding(.horizontal) // Outer padding
                     ZStack{
-                        NavigationLink(destination: ForgotPassword()){
-                            Text("Forgot Password?")
-                                .foregroundColor(.white)
-                                .underline()
-                                .padding()
-                        }
-                        
-                    }
-                    ZStack{
                         Button(action: register){ // button to register an email account
                             Text("Register")
                                 .padding()
@@ -246,6 +271,14 @@ struct Registration: View{
                                         )
                                     case .third:
                                         return Alert(title: Text("Email already is use"), message: Text("This email is already in use, sign in with that account or create another"), dismissButton: .default(Text("Try again")))
+                                    case .fourth:
+                                        return Alert(title: Text("Password is not strong enough"), message: Text("Your password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number"), dismissButton: .default(Text("Try Again")))
+                                    case .fifth:
+                                        return Alert(title: Text("Email is invalid"), message: Text("Enter a valid email address to create you account"), dismissButton: .default(Text("Try Again")))
+                                    case .sixth:
+                                        return Alert(title: Text("Account already exists with email"), message: Text("An account already exists using this email but it is with another provider. Please sign in with that provider"), dismissButton: .default(Text("Try Again")))
+                                    case .seventh:
+                                        return Alert(title: Text("Account is disabled"), message: Text("This account has been disabled by an admin, please seek user support"), dismissButton: .default(Text("Try Again")))
                                         
                                     } // code found from https://stackoverflow.com/questions/58069516/how-can-i-have-two-alerts-on-one-view-in-swiftui
                                     //User John M
