@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 import FirebaseCore
 import GoogleSignIn
+import FirebaseFirestore
 import FirebaseAuth
 
 enum ActiveAlert2{ // set cases for the active alert
@@ -27,7 +28,48 @@ struct Login: View {
     @State var isTwitterLogin: Bool = false
     @State var activeAlert: ActiveAlert2 = .first
     @State  var isLoggedIn: Bool = false
+    @State var firstLogin: Bool = false
     let logo = "NTUShieldLogo" // name of logo picture
+    
+
+    func checkIfDocExists(user: User, completion: @escaping (Bool, Error?) -> Void){
+        let db = Firestore.firestore()
+        let docRef = db.collection("users").document(user.uid)
+        docRef.getDocument { document, error in
+            if let error = error {
+                print("Error fetching document: \(error.localizedDescription)")
+                completion(false, error)
+                return
+            }
+            
+            if let document = document, document.exists {
+                completion(true, nil) // Document exists
+            } else {
+                completion(false, nil) // Document does not exist
+            }
+        }
+    }
+    
+    
+    func saveUserDateToFirestore(user: User, completion: @escaping (Error?) -> Void){
+        let db = Firestore.firestore()
+        let userData: [String: Any] = [
+            "uid": user.uid,
+            "email": user.email ?? "",
+            "createdAt": Timestamp(date: Date())
+            ]
+        db.collection("users").document(user.uid).setData(userData){ error in
+            if let error = error {
+                print("Error writing document: \(error)")
+                completion(error)
+            } else {
+                print("Document successfully written!")
+                completion(nil)
+            }
+            
+        }
+        
+    }
     
     func loginWithGoogle(){
         guard let clientId = FirebaseApp.app()?.options.clientID else {return}
@@ -60,12 +102,31 @@ struct Login: View {
                 }
                 else if error == nil{
                     guard let user = result?.user else {return}
-                    print(user.displayName)
-                    self.isGoogleLogIn.toggle()
+                    UserLocal.currentUser?.user = user
+                    checkIfDocExists(user: user){ exists, error in
+                        if let error = error{
+                            print(error.localizedDescription)
+                            return
+                        }
+                        if(!exists){
+                            print("doc doesn't exists")
+                            saveUserDateToFirestore(user: user) { error in
+                                if let error = error{
+                                    print(error.localizedDescription)
+                                    return
+                                }
+                                self.firstLogin = true
+                            }
+                            
+                        }
+                        else{
+                            self.isGoogleLogIn.toggle()
+                        }
+                    }
+                    
                 }
             }
         }
-        
     }
     
     func loginWithX(){
@@ -85,7 +146,31 @@ struct Login: View {
                         self.activeAlert = .fifth
                     }
                     else if error == nil{
-                        self.isTwitterLogin.toggle()
+                        guard let user = authResult?.user else {return}
+                        UserLocal.currentUser?.user = user
+                        
+                        checkIfDocExists(user: user){ exists, error in
+                            if let error = error{
+                                print(error.localizedDescription)
+                                return
+                            }
+                            if(!exists){
+                                print("doc doesn't exists")
+                                saveUserDateToFirestore(user: user) { error in
+                                    if let error = error{
+                                        print(error.localizedDescription)
+                                        return
+                                    }
+                                    
+                                    self.firstLogin = true
+                                }
+                                
+                            }
+                            else{
+                                self.isTwitterLogin.toggle()
+                            }
+                        }
+                        
                     }
                     
                 }
@@ -113,207 +198,231 @@ struct Login: View {
                         self.activeAlert = .fifth
                     }
                     else if error == nil{
-                        self.isGitLogin.toggle()
                         // User is signed in.
                         // IdP data available in authResult.additionalUserInfo.profile.
                         
                         guard let oauthCredential = authResult?.credential as? OAuthCredential else { return }
-                        // GitHub OAuth access token can also be retrieved by:
-                        // oauthCredential.accessToken
-                        // GitHub OAuth ID token can be retrieved by calling:
-                        // oauthCredential.idToken
-                        
-                    }
-                }
-            }
-        }
-    }
-    
-    
-    func login(){
-        self.showAlert = false
-        if email.isEmpty || password.isEmpty{
-            self.activeAlert = .first
-            self.showAlert.toggle()
-            return
-        }
-        Auth.auth().signIn(withEmail: email, password: password){ (result, error) in
-            print(error?.localizedDescription)
-            if error?.localizedDescription == "The supplied auth credential is malformed or has expired."{
-                self.activeAlert = .sixth
-                self.showAlert.toggle()
-            }
-            else if error?.localizedDescription == "The user account has been disabled by an administrator."{
-                self.activeAlert = .fifth
-                self.showAlert.toggle()
-            }
-            else if error == nil{
-                print("success")
-                self.activeAlert = .second
-                self.showAlert.toggle()
-            }
-        }
-    }
-    
-    var body: some View {
-        NavigationStack{
-            if isGitLogin == true || isGoogleLogIn == true || isTwitterLogin == true || isLoggedIn == true{
-                Maps()
-            }
-            else{
-                VStack{
-                    Image(logo) // ntu logo at top
-                        .resizable()
-                        .frame(width: 100 , height: 100)
-                        .padding()
-                    ZStack{
-                        Text("Welcome to the NTU Capture The Room App \n Please login to use the app")
-                            .padding() // welcome text
-                            .foregroundStyle(Color.white)
-                            .multilineTextAlignment(.center)
-                    }
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Color.white) // Background color matches the rectangle
-                            .frame(height: 50)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 20) // creates a rectangle to cover and match the text field
-                                    .stroke(Color.actionColour, lineWidth: 1) // Border color
-                            )
-                        TextField("",text: $email, prompt: Text("Email").foregroundStyle(Color.black.opacity(0.5))) // email text field
-                            .autocapitalization(.none)
-                            .textContentType(.emailAddress)
-                            .foregroundColor(.black) // Text color
-                            .padding(.horizontal) // Padding inside the text field
-                            .frame(height: 50)
-                        
-                    }
-                    .padding(.horizontal) // Outer padding
-                    
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Color.white) // Background color matches the rectangle
-                            .frame(height: 50)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .stroke(Color.actionColour, lineWidth: 1) // Border color
-                            )
-                        SecureField("", text: $password, prompt: Text("Password").foregroundStyle(Color.black.opacity(0.5))) // password secure field
-                            .autocapitalization(.none)
-                            .textContentType(.name)
-                            .foregroundColor(.black) // Text color
-                            .padding(.horizontal) // Padding inside the text field
-                            .frame(height: 50)
-                    }
-                    .padding(.horizontal) // Outer padding
-                    ZStack{
-                        NavigationLink(destination: ForgotPassword()){
-                            Text("Forgot Password?")
-                                .foregroundColor(.white)
-                                .underline()
-                                .padding()
-                        }
-                        
-                    }
-                    ZStack{
-                        Button(action: login){ // button to register an email account
-                            Text("Login")
-                                .padding()
-                                .foregroundStyle(Color.white)
-                                .background(
-                                    RoundedRectangle(
-                                        cornerRadius: 20, style: .continuous)
-                                    .fill(.actionColour))
-                                
-                            
-                                .alert(isPresented: $showAlert){ //different alerts that can pop up when registering
-                                    switch activeAlert {
-                                    case .first:
-                                        return Alert(title: Text("Email/Password is empty"), message: Text("Ensure that you enter an email and password"), dismissButton: .default(Text("Try Again"))) // is passwords do not match
-                                    case .second:
-                                        return Alert(title: Text("Account Created"), message: Text("Your account has been created"), dismissButton: .default(Text("Continue")){
-                                            isLoggedIn.toggle()// if everyhting is ok
+                        guard let user = authResult?.user else { return }
+                        UserLocal.currentUser?.user = user
+                            checkIfDocExists(user: user){ exists, error in
+                                if let error = error{
+                                    print(error.localizedDescription)
+                                    return
+                                }
+                                if(exists == false){
+                                    print("doc doesn't exists")
+                                    saveUserDateToFirestore(user: user) { error in
+                                        if let error = error{
+                                            print(error.localizedDescription)
+                                            return
                                         }
-                                        )
-                                    case .third:
-                                        return Alert(title: Text("Email already is use"), message: Text("This email is already in use, sign in with that account or create another"), dismissButton: .default(Text("Try again")))
-                                        
-                                    case .fourth:
-                                        return Alert(title: Text("Account already exists with email"), message: Text("An account already exists using this email but it is with another provider. Please sign in with that provider"), dismissButton: .default(Text("Try Again")))
-                                    case .fifth:
-                                        return Alert(title: Text("Account is disabled"), message: Text("This account has been disabled by an admin, please seek user support"), dismissButton: .default(Text("Try Again")))
-                                    case .sixth:
-                                        return Alert(title: Text("Email or Password is incorrect"), message: Text("The entered email or password is incorrect. Please try again"), dismissButton: .default(Text("Try Again")))
-                                        
-                                    } // code found from https://stackoverflow.com/questions/58069516/how-can-i-have-two-alerts-on-one-view-in-swiftui
-                                    //User John M
+                                        self.firstLogin = true
+                                    }
                                     
                                 }
-                            // Alert code is needed to display to different alerts based on one button.
-                        }
-                            
-                    }
-                    ZStack{
-                        Text("Or Login with one of the following options")
-                            .foregroundColor(.white)
-                            .padding()
-                    }
-                    ZStack{
-                        HStack{
-                            Button{
-                                loginWithGoogle()
-                            } label: {
-                                VStack{
-                                    Image("GoogleLogo")
-                                        .resizable()
-                                        .frame(width: 30, height: 30)
-                                        .padding()
-                                        .background(Color.googleColour)
+                                else{
+                                    self.isGitLogin.toggle()
+                                    // GitHub OAuth access token can also be retrieved by:
+                                    // oauthCredential.accessToken
+                                    // GitHub OAuth ID token can be retrieved by calling:
+                                    // oauthCredential.idToken
                                 }
                             }
-                            .padding()
                             
-                            Button{
-                                loginWithX()
-                            } label: {
-                                VStack{
-                                    Image("XLogo")
-                                        .resizable()
-                                        .frame(width: 30, height: 30)
-                                        .padding()
-                                        .background(Color.black)
-                                }
-                            }
-                            .padding()
                             
-                            Button{
-                                loginWithGithub()
-                            } label: {
-                                VStack{
-                                    Image("GithubLogo")
-                                        .resizable()
-                                        .frame(width: 30, height: 30)
-                                        .padding()
-                                        .background(Color.githubColour)
-                                }
-                            }
-                            .padding()
                         }
                     }
-                    ZStack{
-                        NavigationLink(destination: Registration()){
-                            Text("Haven't got an Account yet?")
+                }
+            }
+        }
+        
+    func loginEmail(){
+            self.showAlert = false
+            if email.isEmpty || password.isEmpty{
+                self.activeAlert = .first
+                self.showAlert.toggle()
+                return
+            }
+            Auth.auth().signIn(withEmail: email, password: password){ (result, error) in
+                print(error?.localizedDescription)
+                if error?.localizedDescription == "The supplied auth credential is malformed or has expired."{
+                    self.activeAlert = .sixth
+                    self.showAlert.toggle()
+                }
+                else if error?.localizedDescription == "The user account has been disabled by an administrator."{
+                    self.activeAlert = .fifth
+                    self.showAlert.toggle()
+                }
+                else if error == nil{
+                    print("success")
+                    guard let user = result?.user else { return } // get user to get uid for later use
+                    UserLocal.currentUser?.user = user
+                    // if username
+                    self.activeAlert = .second
+                    self.showAlert.toggle()
+                }
+            }
+        }
+    var body: some View {
+        NavigationStack{
+            if firstLogin == true{
+                FirstUserInfo()
+            }else if isGitLogin == true || isGoogleLogIn == true || isTwitterLogin == true || isLoggedIn == true{
+                Maps()
+            }else{
+                    VStack{
+                        Image(logo) // ntu logo at top
+                            .resizable()
+                            .frame(width: 100 , height: 100)
+                            .padding()
+                        ZStack{
+                            Text("Welcome to the NTU Capture The Room App \n Please login to use the app")
+                                .padding() // welcome text
+                                .foregroundStyle(Color.white)
+                                .multilineTextAlignment(.center)
+                        }
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(Color.white) // Background color matches the rectangle
+                                .frame(height: 50)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 20) // creates a rectangle to cover and match the text field
+                                        .stroke(Color.actionColour, lineWidth: 1) // Border color
+                                )
+                            TextField("",text: $email, prompt: Text("Email").foregroundStyle(Color.black.opacity(0.5))) // email text field
+                                .autocapitalization(.none)
+                                .textContentType(.emailAddress)
+                                .foregroundColor(.black) // Text color
+                                .padding(.horizontal) // Padding inside the text field
+                                .frame(height: 50)
+                            
+                        }
+                        .padding(.horizontal) // Outer padding
+                        
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(Color.white) // Background color matches the rectangle
+                                .frame(height: 50)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .stroke(Color.actionColour, lineWidth: 1) // Border color
+                                )
+                            SecureField("", text: $password, prompt: Text("Password").foregroundStyle(Color.black.opacity(0.5))) // password secure field
+                                .autocapitalization(.none)
+                                .textContentType(.name)
+                                .foregroundColor(.black) // Text color
+                                .padding(.horizontal) // Padding inside the text field
+                                .frame(height: 50)
+                        }
+                        .padding(.horizontal) // Outer padding
+                        ZStack{
+                            NavigationLink(destination: ForgotPassword()){
+                                Text("Forgot Password?")
+                                    .foregroundColor(.white)
+                                    .underline()
+                                    .padding()
+                            }
+                            
+                        }
+                        ZStack{
+                            Button(action: loginEmail){ // button to register an email account
+                                Text("Login")
+                                    .padding()
+                                    .foregroundStyle(Color.white)
+                                    .background(
+                                        RoundedRectangle(
+                                            cornerRadius: 20, style: .continuous)
+                                        .fill(.actionColour))
+                                    
+                                
+                                    .alert(isPresented: $showAlert){ //different alerts that can pop up when registering
+                                        switch activeAlert {
+                                        case .first:
+                                            return Alert(title: Text("Email/Password is empty"), message: Text("Ensure that you enter an email and password"), dismissButton: .default(Text("Try Again"))) // is passwords do not match
+                                        case .second:
+                                            return Alert(title: Text("Account Created"), message: Text("Your account has been created"), dismissButton: .default(Text("Continue")){
+                                                isLoggedIn.toggle()// if everyhting is ok
+                                            }
+                                            )
+                                        case .third:
+                                            return Alert(title: Text("Email already is use"), message: Text("This email is already in use, sign in with that account or create another"), dismissButton: .default(Text("Try again")))
+                                            
+                                        case .fourth:
+                                            return Alert(title: Text("Account already exists with email"), message: Text("An account already exists using this email but it is with another provider. Please sign in with that provider"), dismissButton: .default(Text("Try Again")))
+                                        case .fifth:
+                                            return Alert(title: Text("Account is disabled"), message: Text("This account has been disabled by an admin, please seek user support"), dismissButton: .default(Text("Try Again")))
+                                        case .sixth:
+                                            return Alert(title: Text("Email or Password is incorrect"), message: Text("The entered email or password is incorrect. Please try again"), dismissButton: .default(Text("Try Again")))
+                                            
+                                        } // code found from https://stackoverflow.com/questions/58069516/how-can-i-have-two-alerts-on-one-view-in-swiftui
+                                        //User John M
+                                        
+                                    }
+                                // Alert code is needed to display to different alerts based on one button.
+                            }
+                                
+                        }
+                        ZStack{
+                            Text("Or Login with one of the following options")
                                 .foregroundColor(.white)
-                                .underline()
                                 .padding()
                         }
+                        ZStack{
+                            HStack{
+                                Button{
+                                    loginWithGoogle()
+                                } label: {
+                                    VStack{
+                                        Image("GoogleLogo")
+                                            .resizable()
+                                            .frame(width: 30, height: 30)
+                                            .padding()
+                                            .background(Color.googleColour)
+                                    }
+                                }
+                                .padding()
+                                
+                                Button{
+                                    loginWithX()
+                                } label: {
+                                    VStack{
+                                        Image("XLogo")
+                                            .resizable()
+                                            .frame(width: 30, height: 30)
+                                            .padding()
+                                            .background(Color.black)
+                                    }
+                                }
+                                .padding()
+                                
+                                Button{
+                                    loginWithGithub()
+                                } label: {
+                                    VStack{
+                                        Image("GithubLogo")
+                                            .resizable()
+                                            .frame(width: 30, height: 30)
+                                            .padding()
+                                            .background(Color.githubColour)
+                                    }
+                                }
+                                .padding()
+                            }
+                        }
+                        ZStack{
+                            NavigationLink(destination: Registration()){
+                                Text("Haven't got an Account yet?")
+                                    .foregroundColor(.white)
+                                    .underline()
+                                    .padding()
+                            }
+                        }
                     }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background{
-                    Color.background
-                        .ignoresSafeArea()
-                }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background{
+                        Color.background
+                            .ignoresSafeArea()
+                    }
             }
         }
     }

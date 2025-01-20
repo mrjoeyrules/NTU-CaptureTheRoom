@@ -13,6 +13,7 @@ import SwiftUI
 import FirebaseAuth
 import FirebaseCore
 import GoogleSignIn
+import FirebaseFirestore
 
 enum ActiveAlert{ // set cases for the active alert
     case first, second, third, fourth, fifth, sixth, seventh
@@ -36,7 +37,25 @@ struct Registration: View{
     @State var isEmailLogin: Bool = false
     let logo = "NTUShieldLogo" // name of logo picture
     
-    
+    func saveUserDateToFirestore(user: User, completion: @escaping (Error?) -> Void){
+        let db = Firestore.firestore()
+        let userData: [String: Any] = [
+            "uid": user.uid,
+            "email": user.email ?? "",
+            "createdAt": Timestamp(date: Date())
+            ]
+        db.collection("users").document(user.uid).setData(userData){ error in
+            if let error = error {
+                print("Error writing document: \(error)")
+                completion(error)
+            } else {
+                print("Document successfully written!")
+                completion(nil)
+            }
+            
+        }
+        
+    }
     
     
     func RegisterX(){
@@ -56,7 +75,16 @@ struct Registration: View{
                         self.activeAlert = .seventh
                     }
                     else if error == nil{
+                        guard let user = authResult?.user else {return}
+                        saveUserDateToFirestore(user: user){ error2 in
+                            if let error2 = error{
+                                print(error?.localizedDescription)
+                            }
+                        }
+                        UserLocal.currentUser?.user = user
                         self.isTwitterLogin.toggle()
+                        self.activeAlert = .second
+                        self.showAlert.toggle()
                     }
                 }
                 
@@ -87,6 +115,15 @@ struct Registration: View{
                         // IdP data available in authResult.additionalUserInfo.profile.
                         
                         guard let oauthCredential = authResult?.credential as? OAuthCredential else { return }
+                        guard let user = authResult?.user else {return}
+                        saveUserDateToFirestore(user: user){ error2 in
+                            if let error2 = error{
+                                print(error?.localizedDescription)
+                            }
+                        }
+                        UserLocal.currentUser?.user = user
+                        self.activeAlert = .second
+                        self.showAlert.toggle()
                         // GitHub OAuth access token can also be retrieved by:
                         // oauthCredential.accessToken
                         // GitHub OAuth ID token can be retrieved by calling:
@@ -131,7 +168,14 @@ struct Registration: View{
                 }
                 else if error == nil{
                     guard let user = result?.user else {return}
-                    print(user.displayName)
+                    saveUserDateToFirestore(user: user){ error2 in
+                        if let error2 = error{
+                            print(error?.localizedDescription)
+                        }
+                    }
+                    UserLocal.currentUser?.user = user
+                    self.activeAlert = .second
+                    self.showAlert.toggle()
                     self.isGoogleLogIn.toggle()
                 }
                 
@@ -171,8 +215,16 @@ struct Registration: View{
                     self.showAlert.toggle()
                 }
                 else{
+                    guard let user = result?.user else { return }
+                    saveUserDateToFirestore(user: user){ error2 in
+                        if let error2 = error{
+                            print(error?.localizedDescription)
+                        }
+                    }
+                    UserLocal.currentUser?.user = user
                     self.activeAlert = .second
                     self.showAlert.toggle()
+                    
                 }
             } // creates a user in firebase authentication with email and password entered.
             
@@ -185,7 +237,7 @@ struct Registration: View{
         
         NavigationStack{
             if isGitLogin == true || isGoogleLogIn == true || isTwitterLogin == true || isEmailLogin == true{
-                TeamSelection()
+                FirstUserInfo()
             }
             else{
                 VStack{
