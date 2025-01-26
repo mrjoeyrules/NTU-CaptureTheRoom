@@ -385,19 +385,26 @@ struct Registration: View{
                 }
                 else{
                     guard let user = result?.user else { return }
-                    self.isEmailLogin.toggle()
+                    isFirstLogin = true
                     saveUserDateToFirestore(user: user){ error2 in
                         if let error2 = error{
                             print(error?.localizedDescription)
                         }
                     }
-                    UserLocal.currentUser?.user = user
+                    getStoredUserInfo{ result in
+                        switch result{
+                        case.success:
+                            print("User data stored successfully")
+                            self.isGoogleLogIn = true
+                            showAlert(for: .second)
+                        case .failure:
+                            print("Failed to get user data")
+                        }
+                    }
                     showAlert(for: .second)
                     
                 }
-            } // creates a user in firebase authentication with email and password entered.
-            
-            // creates a user with email and password in firebase auth
+            }
         }
     }
     

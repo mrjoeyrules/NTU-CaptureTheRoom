@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct Tabs: View {
+    
+    
     @State var selectedTab: Tab = .maps
     enum Tab: Hashable {
         case profile
@@ -38,7 +40,6 @@ struct Tabs: View {
         .onAppear {
             // Explicitly set the selected tab when the view appears
             selectedTab = .maps
-            prinTest()
         }
     }
 }
