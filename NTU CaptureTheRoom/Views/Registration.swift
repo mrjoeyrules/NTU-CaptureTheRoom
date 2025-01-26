@@ -117,7 +117,9 @@ struct Registration: View{
             "account type": accountType,
             "createdAt": Timestamp(date: Date()),
             "level": UserLocal.currentUser?.level ?? 1,
-            "xp": UserLocal.currentUser?.xp ?? 0
+            "xp": UserLocal.currentUser?.xp ?? 0,
+            "username": "unselected",
+            "team": "unselected"
             ]
         db.collection("users").document(user.uid).setData(userData){ error in
             if let error = error {

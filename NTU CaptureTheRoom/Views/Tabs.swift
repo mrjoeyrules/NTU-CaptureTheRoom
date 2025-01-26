@@ -8,16 +8,6 @@
 import SwiftUI
 
 struct Tabs: View {
-    
-    func prinTest(){
-        print(UserLocal.currentUser?.username)
-        print(UserLocal.currentUser?.level)
-        print(UserLocal.currentUser?.team)
-        print(UserLocal.currentUser?.xp)
-        print(UserLocal.currentUser?.user)
-    }
-    
-    
     @State var selectedTab: Tab = .maps
     enum Tab: Hashable {
         case profile

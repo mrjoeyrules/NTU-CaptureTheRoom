@@ -101,7 +101,9 @@ struct Login: View {
             "email": user.email ?? "",
             "createdAt": Timestamp(date: Date()),
             "level": UserLocal.currentUser?.level ?? 1,
-            "xp": UserLocal.currentUser?.xp ?? 0
+            "xp": UserLocal.currentUser?.xp ?? 0,
+            "team": "unselected",
+            "username": "unselected"
         ]
         db.collection("users").document(user.uid).setData(userData){ error in
             if let error = error {
@@ -161,20 +163,21 @@ struct Login: View {
                                 print(error.localizedDescription)
                                 return
                             }
-                            self.firstLogin = true
-                            
-                            getStoredUserInfo{ result in
-                                switch result{
-                                case.success:
-                                    print("User data stored successfully")
-                                    self.isGoogleLogIn = true
-                                    showAlert(for: .second)
-                                case .failure:
-                                    print("Failed to get user data")
+                            else{
+                                self.firstLogin = true
+                                
+                                getStoredUserInfo{ result in
+                                    switch result{
+                                    case.success:
+                                        print("User data stored successfully")
+                                        self.isGoogleLogIn = true
+                                        showAlert(for: .second)
+                                    case .failure:
+                                        print("Failed to get user data")
+                                    }
                                 }
                             }
                         }
-                        
                     }
                     else{
                         getStoredUserInfo{ result in
