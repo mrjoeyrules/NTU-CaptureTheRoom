@@ -31,7 +31,7 @@ class UserLocal{
             _username = newUsername
         }
     }
-    private var _level: Int = 0
+    private var _level: Int = 1
     var level: Int{
         get{
             return _level

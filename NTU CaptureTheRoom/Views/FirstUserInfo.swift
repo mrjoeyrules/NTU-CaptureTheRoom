@@ -52,6 +52,7 @@ struct FirstUserInfo: View{
                 print(error.localizedDescription)
                 completion(error)
             }else{
+                UserLocal.currentUser?.username = username
                 completion(nil)
             }
         }
@@ -78,8 +79,6 @@ struct FirstUserInfo: View{
                     } else {
                         // if all good set alert to success
                         usernameAccepted = true
-                        let loggedInUser = UserLocal(username: username)
-                        UserLocal.currentUser = loggedInUser
                         self.activeAlert = .second
                         self.showAlert = true
                     }
@@ -150,8 +149,4 @@ struct FirstUserInfo: View{
             }
         }
     }
-}
-
-#Preview {
-    ContentView()
 }
