@@ -61,9 +61,11 @@ struct Registration: View{
             let team = data["team"] as? String ?? "unknown"
             let xp = data["xp"] as! Int
             let level = data["level"] as! Int
+            let setUpStatus = data["setupstatus"] as? String ?? "notSetUp"
             
             let userLocal = UserLocal(username: username)
             userLocal.team = team
+            userLocal.setUpStatus = setUpStatus
             userLocal.user = Auth.auth().currentUser
             userLocal.level = level
             userLocal.xp = xp
@@ -97,29 +99,20 @@ struct Registration: View{
     }
     
     
-    func saveUserDateToFirestore(user: User, completion: @escaping (Error?) -> Void){
+    func saveUserDateToFirestore(user: User,loginType: String , completion: @escaping (Error?) -> Void){
         let db = Firestore.firestore()
-        var accountType: String = ""
-        if isGoogleLogIn{
-            accountType = "Google"
-        }else if isGitLogin{
-            accountType = "GitHub"
-        }else if isTwitterLogin{
-            accountType = "Twitter"
-        }else{
-            accountType = "Email"
-        }
         
         
         let userData: [String: Any] = [
             "uid": user.uid,
             "email": user.email ?? "",
-            "account type": accountType,
+            "account type": loginType,
             "createdAt": Timestamp(date: Date()),
             "level": UserLocal.currentUser?.level ?? 1,
             "xp": UserLocal.currentUser?.xp ?? 0,
             "username": "unselected",
-            "team": "unselected"
+            "team": "unselected",
+            "setupstatus": "in-progress"
             ]
         db.collection("users").document(user.uid).setData(userData){ error in
             if let error = error {
@@ -169,7 +162,7 @@ struct Registration: View{
                                     switch result{
                                     case.success:
                                         print("User data stored successfully")
-                                        self.isTwitterLogin = true
+                                        isTwitterLogin = true
                                         showAlert(for: .second)
                                     case .failure:
                                         print("Failed to get user data")
@@ -177,7 +170,7 @@ struct Registration: View{
                                 }
                             }else{
                                 isFirstLogin = true
-                                saveUserDateToFirestore(user: user){ error2 in
+                                saveUserDateToFirestore(user: user, loginType: "Twitter"){ error2 in
                                     if let error2 = error{
                                         print(error?.localizedDescription)
                                     }
@@ -186,7 +179,7 @@ struct Registration: View{
                                     switch result{
                                     case.success:
                                         print("User data stored successfully")
-                                        self.isGoogleLogIn = true
+                                        isTwitterLogin = true
                                         showAlert(for: .second)
                                     case .failure:
                                         print("Failed to get user data")
@@ -235,7 +228,7 @@ struct Registration: View{
                                     switch result{
                                     case.success:
                                         print("User data stored successfully")
-                                        self.isGitLogin = true
+                                        isGitLogin = true
                                         showAlert(for: .second)
                                     case .failure:
                                         print("Failed to get user data")
@@ -243,11 +236,11 @@ struct Registration: View{
                                 }
                             }else{
                                 isFirstLogin = true
-                                saveUserDateToFirestore(user: user){ error2 in
+                                saveUserDateToFirestore(user: user, loginType: "GitHub"){ error2 in
                                     if let error2 = error{
                                         print(error?.localizedDescription)
                                     }
-                                    self.isGitLogin = true
+                                    isGitLogin = true
                                     UserLocal.currentUser?.user = user
                                     showAlert(for: .second)
                                 }
@@ -255,7 +248,7 @@ struct Registration: View{
                                     switch result{
                                     case.success:
                                         print("User data stored successfully")
-                                        self.isGitLogin = true
+                                        isGitLogin = true
                                         showAlert(for: .second)
                                     case .failure:
                                         print("Failed to get user data")
@@ -317,7 +310,7 @@ struct Registration: View{
                                 switch result{
                                 case.success:
                                     print("User data stored successfully")
-                                    self.isGoogleLogIn = true
+                                    isGoogleLogIn = true
                                     showAlert(for: .second)
                                 case .failure:
                                     print("Failed to get user data")
@@ -326,7 +319,7 @@ struct Registration: View{
                             isFirstLogin = false
                         }else{
                             isFirstLogin = true
-                            saveUserDateToFirestore(user: user){ error2 in
+                            saveUserDateToFirestore(user: user, loginType: "Google"){ error2 in
                                 if let error2 = error{
                                     print(error?.localizedDescription)
                                 }
@@ -335,7 +328,7 @@ struct Registration: View{
                                 switch result{
                                 case.success:
                                     print("User data stored successfully")
-                                    self.isGoogleLogIn = true
+                                    isGoogleLogIn = true
                                     showAlert(for: .second)
                                 case .failure:
                                     print("Failed to get user data")
@@ -384,7 +377,7 @@ struct Registration: View{
                 else{
                     guard let user = result?.user else { return }
                     isFirstLogin = true
-                    saveUserDateToFirestore(user: user){ error2 in
+                    saveUserDateToFirestore(user: user, loginType: "Email"){ error2 in
                         if let error2 = error{
                             print(error?.localizedDescription)
                         }
@@ -393,7 +386,7 @@ struct Registration: View{
                         switch result{
                         case.success:
                             print("User data stored successfully")
-                            self.isEmailLogin = true
+                            isEmailLogin = true
                             showAlert(for: .second)
                         case .failure:
                             print("Failed to get user data")
@@ -408,10 +401,10 @@ struct Registration: View{
     var body: some View{
         
         NavigationStack{
-            if (isGoogleLogIn == true || isEmailLogin == true || isGitLogin == true || isTwitterLogin == true) && isFirstLogin == true{
+            if (isGoogleLogIn == true || isEmailLogin == true || isGitLogin == true || isTwitterLogin == true) && (isFirstLogin == true || UserLocal.currentUser?.setUpStatus == "in-progress" || UserLocal.currentUser?.setUpStatus == "notSetUp"){
                 FirstUserInfo()
             }
-            else if(isGoogleLogIn == true || isGitLogin == true || isTwitterLogin == true || isEmailLogin == true) && isFirstLogin == false{
+            else if(isGoogleLogIn == true || isGitLogin == true || isTwitterLogin == true || isEmailLogin == true) && isFirstLogin == false && UserLocal.currentUser?.setUpStatus == "complete"{
                 Tabs(selectedTab: .maps)
             }
             else{

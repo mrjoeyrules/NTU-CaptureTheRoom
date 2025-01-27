@@ -61,12 +61,14 @@ struct Login: View {
             let team = data["team"] as? String ?? "unknown"
             let xp = data["xp"] as! Int
             let level = data["level"] as! Int
+            let setUpStatus = data["setupstatus"] as? String ?? "notSetUp"
             
             let userLocal = UserLocal(username: username)
             userLocal.team = team
             userLocal.user = Auth.auth().currentUser
             userLocal.level = level
             userLocal.xp = xp
+            userLocal.setUpStatus = setUpStatus
             UserLocal.currentUser = userLocal
             completion(.success(()))
             
@@ -94,16 +96,18 @@ struct Login: View {
     }
     
     
-    func saveUserDateToFirestore(user: User, completion: @escaping (Error?) -> Void){
+    func saveUserDateToFirestore(user: User, loginType: String ,completion: @escaping (Error?) -> Void){
         let db = Firestore.firestore()
         let userData: [String: Any] = [
             "uid": user.uid,
             "email": user.email ?? "",
+            "account type": loginType,
             "createdAt": Timestamp(date: Date()),
             "level": UserLocal.currentUser?.level ?? 1,
             "xp": UserLocal.currentUser?.xp ?? 0,
             "team": "unselected",
-            "username": "unselected"
+            "username": "unselected",
+            "setupstatus": "in-progress"
         ]
         db.collection("users").document(user.uid).setData(userData){ error in
             if let error = error {
@@ -158,7 +162,7 @@ struct Login: View {
                     }
                     if(!exists){
                         print("doc doesn't exists")
-                        saveUserDateToFirestore(user: user) { error in
+                        saveUserDateToFirestore(user: user, loginType: "Google") { error in
                             if let error = error{
                                 print(error.localizedDescription)
                                 return
@@ -223,7 +227,7 @@ struct Login: View {
                         }
                         if(!exists){
                             print("doc doesn't exists")
-                            saveUserDateToFirestore(user: user) { error in
+                            saveUserDateToFirestore(user: user, loginType: "Twitter") { error in
                                 if let error = error{
                                     print(error.localizedDescription)
                                     return
@@ -294,7 +298,7 @@ struct Login: View {
                         }
                         if(exists == false){
                             print("doc doesn't exists")
-                            saveUserDateToFirestore(user: user) { error in
+                            saveUserDateToFirestore(user: user, loginType: "GitHub") { error in
                                 if let error = error{
                                     print(error.localizedDescription)
                                     return
@@ -378,9 +382,9 @@ struct Login: View {
     }
     var body: some View {
         NavigationStack{
-            if firstLogin == true{
+            if firstLogin == true || (UserLocal.currentUser?.setUpStatus == "in-progress" || UserLocal.currentUser?.setUpStatus == "notSetUp"){
                 FirstUserInfo()
-            }else if isGitLogin == true || isGoogleLogIn == true || isTwitterLogin == true || isLoggedIn == true{
+            }else if (isGitLogin == true || isGoogleLogIn == true || isTwitterLogin == true || isLoggedIn == true) && UserLocal.currentUser?.setUpStatus == "complete"{
                 Tabs(selectedTab: .maps)
             }else{
                     VStack{

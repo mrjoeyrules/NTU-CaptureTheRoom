@@ -17,29 +17,39 @@ struct Tabs: View {
         case nearby
     }
     var body: some View {
-        TabView(selection: $selectedTab) {
-            Profile()
-                .tabItem {
-                    Label("Profile", systemImage: "person")
-                }
-                .tag(Tab.profile)
-
-            Maps()
-                .tabItem {
-                    Label("Maps", systemImage: "map")
-                }
-                .tag(Tab.maps)
-
-            Nearby()
-                .tabItem {
-                    Label("Nearby", systemImage: "mappin")
-                }
-                .tag(Tab.nearby)
+        ZStack{
+            Color.background
+                .ignoresSafeArea()
+            TabView(selection: $selectedTab) {
+                Profile()
+                    .tabItem {
+                        Label("Profile", systemImage: "person")
+                    }
+                    .tag(Tab.profile)
+                
+                Maps()
+                    .tabItem {
+                        Label("Map", systemImage: "map")
+                    }
+                    .tag(Tab.maps)
+                
+                Nearby()
+                    .tabItem {
+                        Label("Nearby", systemImage: "mappin")
+                    }
+                    .tag(Tab.nearby)
+            }
         }
+        .navigationBarBackButtonHidden(true)
         .tint(Color.actionColour)
         .onAppear {
             // Explicitly set the selected tab when the view appears
             selectedTab = .maps
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background{
+            Color.background
+                .ignoresSafeArea()
         }
     }
 }

@@ -31,6 +31,18 @@ class UserLocal{
             _username = newUsername
         }
     }
+    private var _setUpStatus: String = ""
+    var setUpStatus: String{
+        get{
+            return _setUpStatus
+        }
+        set(newSetUpStatus){
+            _setUpStatus = newSetUpStatus
+        }
+    }
+    
+    
+    
     private var _level: Int = 1
     var level: Int{
         get{

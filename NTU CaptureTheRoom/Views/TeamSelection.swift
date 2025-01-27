@@ -15,6 +15,7 @@ struct TeamSelection: View {
     @State private var selectedTeam: String? = nil
     @State private var showAlert: Bool = false
     @State private var navigateToNextPage = false
+    
     func setTeamInFireStore(team: String, completeion: @escaping (Error?) -> Void){
         guard let uid = Auth.auth().currentUser?.uid else {
             print("No authenticated user.")
@@ -23,12 +24,14 @@ struct TeamSelection: View {
         }
         let db = Firestore.firestore()
         db.collection("users").document(uid).updateData([
+            "setupstatus": "complete",
             "team": team
         ]) { error in
             if let error = error{
                 print(error.localizedDescription)
                 completeion(error)
             }else{
+                UserLocal.currentUser?.setUpStatus = "complete"
                 UserLocal.currentUser?.team = team
                 UserLocal.currentUser?.level = 1
                 UserLocal.currentUser?.xp = 0
@@ -38,65 +41,70 @@ struct TeamSelection: View {
     }
     
     var body: some View {
-        VStack(spacing: 20) { // Vertical stack for the buttons
-            Text("Choose Your Team")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .padding()
+        ZStack{
+                Color.background
+                    .ignoresSafeArea()
             
-                        Button(action: {
-                            selectedTeam = "Grey"
-                            showAlert = true
-                            print("Selected: \(selectedTeam ?? "")")
-                        }) {
-                            TeamButtonLabel(teamName: "Team Grey", color: .background)
-                        }
-
-                        Button(action: {
-                            selectedTeam = "Pink"
-                            showAlert = true
-                            print("Selected: \(selectedTeam ?? "")")
-                        }) {
-                            TeamButtonLabel(teamName: "Team Pink", color: .actionColour)
-                        }
-
-                        Button(action: {
-                            selectedTeam = "Blue"
-                            showAlert = true
-                            print("Selected: \(selectedTeam ?? "")")
-                        }) {
-                            TeamButtonLabel(teamName: "Team Blue", color: .sstColour)
-                        }
-                    }
+            VStack(spacing: 20) { // Vertical stack for the buttons
+                Text("Choose Your Team")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
                     .padding()
-                    .background(Color.background.opacity(0.5).ignoresSafeArea())
-                    .alert(isPresented: $showAlert){
-                        Alert(
-                            title: Text("Confirm Team Selection"),
-                            message: Text("Are you sure you want to join \(selectedTeam ?? " this team")?"),
-                            primaryButton: .default(Text("Confirm")) {
-                                if let team = selectedTeam{
-                                    setTeamInFireStore(team: team){ error in
-                                        if let error = error{
-                                            print(error.localizedDescription)
-                                        }else{
-                                            print("team set properly")
-                                            UserLocal.currentUser?.team = team
-                                            navigateToNextPage = true
-                                        }
-                                    }
+                
+                Button(action: {
+                    selectedTeam = "Grey"
+                    showAlert = true
+                    print("Selected: \(selectedTeam ?? "")")
+                }) {
+                    TeamButtonLabel(teamName: "Team Grey", color: .background)
+                }
+                
+                Button(action: {
+                    selectedTeam = "Pink"
+                    showAlert = true
+                    print("Selected: \(selectedTeam ?? "")")
+                }) {
+                    TeamButtonLabel(teamName: "Team Pink", color: .actionColour)
+                }
+                
+                Button(action: {
+                    selectedTeam = "Blue"
+                    showAlert = true
+                    print("Selected: \(selectedTeam ?? "")")
+                }) {
+                    TeamButtonLabel(teamName: "Team Blue", color: .sstColour)
+                }
+            }
+            .padding()
+            .alert(isPresented: $showAlert){
+                Alert(
+                    title: Text("Confirm Team Selection"),
+                    message: Text("Are you sure you want to join \(selectedTeam ?? " this team")?"),
+                    primaryButton: .default(Text("Confirm")) {
+                        if let team = selectedTeam{
+                            setTeamInFireStore(team: team){ error in
+                                if let error = error{
+                                    print(error.localizedDescription)
+                                }else{
+                                    print("team set properly")
+                                    UserLocal.currentUser?.team = team
+                                    navigateToNextPage = true
                                 }
-                            },
-                            secondaryButton: .cancel(Text("Cancel"))
-                        )
-                    }
-                    .navigationDestination(isPresented: $navigateToNextPage){
-                        Tabs(selectedTab: .maps)
-                    }
+                            }
+                        }
+                    },
+                    secondaryButton: .cancel(Text("Cancel"))
+                )
+            }
+            .navigationDestination(isPresented: $navigateToNextPage){
+                Tabs(selectedTab: .maps)
+            }
         }
-        
-        
+        .navigationBarBackButtonHidden(true)
     }
+    
+}
+
 struct TeamButtonLabel: View {
     let teamName: String
     let color: Color
@@ -107,6 +115,8 @@ struct TeamButtonLabel: View {
                 .fill(color.opacity(0.8))
                 .frame(height: 120) // Vertical rectangular shape
                 .shadow(color: color.opacity(0.5), radius: 10, x: 0, y: 5)
+                .overlay(RoundedRectangle(cornerRadius: 15)
+                    .stroke(Color.black, lineWidth: 3))
             
             Text(teamName)
                 .font(.title)
