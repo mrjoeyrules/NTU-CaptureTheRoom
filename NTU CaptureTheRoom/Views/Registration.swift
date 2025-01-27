@@ -255,7 +255,7 @@ struct Registration: View{
                                     switch result{
                                     case.success:
                                         print("User data stored successfully")
-                                        self.isGoogleLogIn = true
+                                        self.isGitLogin = true
                                         showAlert(for: .second)
                                     case .failure:
                                         print("Failed to get user data")
@@ -357,12 +357,10 @@ struct Registration: View{
     func register(){ // runs code when register button is pressed
         self.showAlert = false
         if email.isEmpty || password.isEmpty || confirmPassword.isEmpty{
-            self.activeAlert = .first
-            self.showAlert.toggle()
+            showAlert(for: .first)
         }
         if password != confirmPassword{ // if passwords dont match flag as invalid
-            self.activeAlert = .first
-            self.showAlert.toggle()
+            showAlert(for: .first)
             
         }
         else{
@@ -395,14 +393,12 @@ struct Registration: View{
                         switch result{
                         case.success:
                             print("User data stored successfully")
-                            self.isGoogleLogIn = true
+                            self.isEmailLogin = true
                             showAlert(for: .second)
                         case .failure:
                             print("Failed to get user data")
                         }
                     }
-                    showAlert(for: .second)
-                    
                 }
             }
         }
