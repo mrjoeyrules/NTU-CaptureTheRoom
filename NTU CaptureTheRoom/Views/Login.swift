@@ -322,7 +322,7 @@ struct Login: View {
                                 switch result{
                                 case.success:
                                     print("User data stored successfully")
-                                    self.isGoogleLogIn = true
+                                    self.isGitLogin = true
                                     showAlert(for: .second)
                                 case .failure:
                                     print("Failed to get user data")
@@ -372,7 +372,7 @@ struct Login: View {
                 switch result{
                 case.success:
                     print("User data stored successfully")
-                    self.isGoogleLogIn = true
+                    self.isLoggedIn = true
                     showAlert(for: .second)
                 case .failure:
                     print("Failed to get user data")
@@ -384,7 +384,7 @@ struct Login: View {
         NavigationStack{
             if firstLogin == true || (UserLocal.currentUser?.setUpStatus == "in-progress" || UserLocal.currentUser?.setUpStatus == "notSetUp"){
                 FirstUserInfo()
-            }else if (isGitLogin == true || isGoogleLogIn == true || isTwitterLogin == true || isLoggedIn == true) && UserLocal.currentUser?.setUpStatus == "complete"{
+            }else if(isGitLogin == true || isGoogleLogIn == true || isTwitterLogin == true || isLoggedIn == true) && UserLocal.currentUser?.setUpStatus == "complete"{
                 Tabs(selectedTab: .maps)
             }else{
                     VStack{
@@ -540,6 +540,7 @@ struct Login: View {
                         Color.background
                             .ignoresSafeArea()
                     }
+                    .navigationBarBackButtonHidden(true)
             }
         }
     }

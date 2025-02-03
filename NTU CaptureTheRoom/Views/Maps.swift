@@ -51,22 +51,6 @@ struct GoogleMapView: UIViewRepresentable {
             image.draw(in: CGRect(origin: .zero, size: newSize))
         }
     }
-    
-    
-    func createMarkerIcon(with systemName: String, color: String, size: CGFloat) -> UIImage? {
-        let config = UIImage.SymbolConfiguration(pointSize: size, weight: .bold)
-        
-        // Get SF Symbol as UIImage
-        guard let symbolImage = UIImage(systemName: systemName, withConfiguration: config) else {
-            return nil
-        }
-        
-        // Apply color from assets
-        let colorFromAssets = UIColor(named: color) ?? UIColor.black
-        let tintedSymbol = symbolImage.withTintColor(colorFromAssets, renderingMode: .alwaysOriginal)
-        
-        return tintedSymbol
-    }
 
     class Coordinator: NSObject, CLLocationManagerDelegate {
         var parent: GoogleMapView
@@ -93,7 +77,7 @@ struct GoogleMapView: UIViewRepresentable {
 
             if let mapView = mapView, parent.userLocation != nil {
                 if !parent.hasSetInitialCamera {
-                    let cameraUpdate = GMSCameraUpdate.setTarget(location.coordinate, zoom: 15) // if userlocation is not nil then on display default to user location
+                    let cameraUpdate = GMSCameraUpdate.setTarget(location.coordinate, zoom: 17.5) // if userlocation is not nil then on display default to user location
                     mapView.moveCamera(cameraUpdate)
                     DispatchQueue.main.async {
                         self.parent.hasSetInitialCamera = true
@@ -110,6 +94,7 @@ struct GoogleMapView: UIViewRepresentable {
 
     func makeCoordinator() -> Coordinator {
         Coordinator(parent: self)
+        
     }
 
     func makeUIView(context: Context) -> GMSMapView {
@@ -121,9 +106,8 @@ struct GoogleMapView: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: GMSMapView, context: Context) {
-        uiView.clear()
         if let userLocation = userLocation, !hasSetInitialCamera {
-            let cameraUpdate = GMSCameraUpdate.setTarget(userLocation, zoom: 15)
+            let cameraUpdate = GMSCameraUpdate.setTarget(userLocation, zoom: 17.5)
             uiView.moveCamera(cameraUpdate)
             DispatchQueue.main.async {
                 self.hasSetInitialCamera = true
@@ -302,6 +286,7 @@ struct Maps: View {
             .onAppear{
                 startListeningForRoomUpdates()
             }
+            .navigationBarBackButtonHidden(true)
         }
     }
     func startListeningForRoomUpdates() {

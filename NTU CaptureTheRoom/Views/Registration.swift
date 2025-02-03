@@ -15,6 +15,7 @@ enum ActiveAlert{ // set cases for the active alert
 
 struct Registration: View{
     
+    
     let twitterProvider = OAuthProvider(providerID: "twitter.com")
     let gitProvider = OAuthProvider(providerID: "github.com")
     
@@ -329,6 +330,7 @@ struct Registration: View{
                                 case.success:
                                     print("User data stored successfully")
                                     isGoogleLogIn = true
+                                    
                                     showAlert(for: .second)
                                 case .failure:
                                     print("Failed to get user data")
@@ -568,6 +570,7 @@ struct Registration: View{
                     Color.background
                         .ignoresSafeArea()
                 }
+                .navigationBarBackButtonHidden(true)
             }
         }
     }

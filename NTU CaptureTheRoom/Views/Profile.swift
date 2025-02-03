@@ -5,17 +5,51 @@
 //  Created by Joseph Cuesta Acevedo on 26/01/2025.
 //
 
+import FirebaseAuth
 import SwiftUI
 
 struct Profile: View {
+    @State private var showSettings = false
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
-            .navigationBarBackButtonHidden(true)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background{
-                Color.background
-                    .ignoresSafeArea()
+        VStack {
+            HStack {
+                Spacer()
+                NavigationLink(destination: Settings()) {
+                    Image(systemName: "gearshape.fill") // Settings Icon
+                        .foregroundColor(.white)
+                        .padding(12)
+                        .background(Color.actionColour)
+                        .clipShape(Circle())
+                        .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+                }
+                .padding(.trailing, 20)
+                .padding(.top, 10)
             }
+
+            // Profile Title & Username
+            VStack(spacing: 2) {
+                Text("Profile")
+                    .font(.title)
+                    .fontWeight(.bold)
+
+                Text(UserLocal.currentUser?.username ?? "Username not found")
+                    .font(.title)
+                    .fontWeight(.medium)
+            }
+            
+            VStack{
+                Text("Level: \(UserLocal.currentUser?.level ?? 0)")
+            }
+            VStack{
+                Text("xp: \(UserLocal.currentUser?.xp ?? 0)")
+            }
+
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background {
+            Color.background
+                .ignoresSafeArea()
+        }
     }
 }
-

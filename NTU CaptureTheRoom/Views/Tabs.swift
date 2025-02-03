@@ -8,46 +8,47 @@
 import SwiftUI
 
 struct Tabs: View {
-    
-    
     @State var selectedTab: Tab = .maps
     enum Tab: Hashable {
         case profile
         case maps
         case nearby
     }
+
     var body: some View {
-        ZStack{
+        ZStack {
             Color.background
                 .ignoresSafeArea()
             TabView(selection: $selectedTab) {
-                Profile()
-                    .tabItem {
-                        Label("Profile", systemImage: "person")
-                    }
-                    .tag(Tab.profile)
-                
-                Maps()
-                    .tabItem {
-                        Label("Map", systemImage: "map")
-                    }
-                    .tag(Tab.maps)
-                
-                Nearby()
-                    .tabItem {
-                        Label("Nearby", systemImage: "mappin")
-                    }
-                    .tag(Tab.nearby)
+                NavigationStack {
+                    Profile()
+                }
+                .tabItem {
+                    Label("Profile", systemImage: "person")
+                }
+                .tag(Tab.profile)
+
+                NavigationStack {
+                    Maps()
+                }
+                .tabItem {
+                    Label("Map", systemImage: "map")
+                }
+                .tag(Tab.maps)
+
+                NavigationStack {
+                    Nearby()
+                }
+                .tabItem {
+                    Label("Nearby", systemImage: "mappin")
+                }
+                .tag(Tab.nearby)
             }
         }
         .navigationBarBackButtonHidden(true)
         .tint(Color.actionColour)
-        .onAppear {
-            // Explicitly set the selected tab when the view appears
-            selectedTab = .maps
-        }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background{
+        .background {
             Color.background
                 .ignoresSafeArea()
         }

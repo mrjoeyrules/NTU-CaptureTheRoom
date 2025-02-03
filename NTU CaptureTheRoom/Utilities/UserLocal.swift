@@ -70,22 +70,4 @@ class UserLocal{
             _team = newTeam
         }
     }
-    private var _currentLat: Double = 0
-    var currentLat: Double{
-        get{
-            return _currentLat
-        }
-        set(newCurrentLat){
-            _currentLat = newCurrentLat
-        }
-    }
-    private var _currentLon: Double = 0
-    var currentLon: Double{
-        get{
-            return _currentLon
-        }
-        set(newCurrentLon){
-            _currentLon = newCurrentLon
-        }
-    }
 }
