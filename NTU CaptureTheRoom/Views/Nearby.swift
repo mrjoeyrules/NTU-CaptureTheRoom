@@ -9,13 +9,21 @@ import SwiftUI
 
 struct Nearby: View {
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
-            .navigationBarBackButtonHidden(true)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background{
-                Color.background
-                    .ignoresSafeArea()
+        VStack{
+            VStack{
+                Text("Nearby Rooms")
+                    .font(.title)
+                    .fontWeight(.bold)
             }
+            
+        }
+        .navigationBarBackButtonHidden(true)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background{
+            Color.background
+                .ignoresSafeArea()
+        }
     }
+    
 }
 

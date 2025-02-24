@@ -60,7 +60,7 @@ struct Registration: View{
             }
             let username = data["username"] as! String ?? "unknown"
             let team = data["team"] as? String ?? "unknown"
-            let xp = data["xp"] as! Int
+            let xp = data["xp"] as! CGFloat
             let level = data["level"] as! Int
             let setUpStatus = data["setupstatus"] as? String ?? "notSetUp"
             

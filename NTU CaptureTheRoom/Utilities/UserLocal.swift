@@ -40,6 +40,15 @@ class UserLocal{
             _setUpStatus = newSetUpStatus
         }
     }
+    private var _xpStored: CGFloat = 0
+    var xpStored: CGFloat{
+        get{
+            return _xpStored
+        }
+        set(newXpStored){
+            _xpStored = newXpStored
+        }
+    }
     
     
     
@@ -52,8 +61,8 @@ class UserLocal{
             _level = newLevel
         }
     }
-    private var _xp: Int = 0
-    var xp: Int{
+    private var _xp: CGFloat = 0
+    var xp: CGFloat{
         get{
             return _xp
         }

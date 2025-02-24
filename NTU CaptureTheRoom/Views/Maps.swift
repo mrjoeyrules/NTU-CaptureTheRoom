@@ -4,15 +4,16 @@
 //
 //  Created by Joseph Cuesta Acevedo on 02/12/2024.
 //
-
+// UUID - F789C93B-F0D9-4410-BBDB-F9A991E8CBB2
+import CoreBluetooth
 import CoreLocation
+import CoreNFC
+import FirebaseAuth
 import FirebaseCore
 import FirebaseFirestore
-import FirebaseAuth
 import Foundation
 import GoogleMaps
 import SwiftUI
-import CoreNFC
 
 // room location setup
 
@@ -24,29 +25,25 @@ struct RoomLocation: Identifiable {
     var teamOwner: String?
 }
 
-
-
-
 // google maps setup and tracking
 
 struct GoogleMapView: UIViewRepresentable {
     @Binding var userLocation: CLLocationCoordinate2D?
     @Binding var roomLocations: [RoomLocation]
     @Binding var hasSetInitialCamera: Bool
-    
-    
+
     func resizeImage(image: UIImage, targetSize: CGSize) -> UIImage {
         let size = image.size
-        
-        let widthRatio  = targetSize.width  / size.width
+
+        let widthRatio = targetSize.width / size.width
         let heightRatio = targetSize.height / size.height
-        
+
         // Preserve aspect ratio
         let scaleFactor = min(widthRatio, heightRatio)
-        
+
         let newSize = CGSize(width: size.width * scaleFactor, height: size.height * scaleFactor)
         let renderer = UIGraphicsImageRenderer(size: newSize)
-        
+
         return renderer.image { _ in
             image.draw(in: CGRect(origin: .zero, size: newSize))
         }
@@ -83,7 +80,6 @@ struct GoogleMapView: UIViewRepresentable {
                         self.parent.hasSetInitialCamera = true
                     }
                 }
-                
             }
         }
 
@@ -94,7 +90,6 @@ struct GoogleMapView: UIViewRepresentable {
 
     func makeCoordinator() -> Coordinator {
         Coordinator(parent: self)
-        
     }
 
     func makeUIView(context: Context) -> GMSMapView {
@@ -142,54 +137,80 @@ struct GoogleMapView: UIViewRepresentable {
     }
 }
 
-
-
 // nfc setup
-class NFCScanner: NSObject, NFCNDEFReaderSessionDelegate{
+class NFCScanner: NSObject, NFCNDEFReaderSessionDelegate {
     var session: NFCNDEFReaderSession?
-    
-    
+
     func beginScanning(completion: @escaping (String) -> Void) {
         guard NFCNDEFReaderSession.readingAvailable else {
             completion("NFC reading not available on this device")
             return
         }
-        
+
         session = NFCNDEFReaderSession(delegate: self, queue: nil, invalidateAfterFirstRead: true)
         session?.alertMessage = "Hold your device near the rooms NFC tag"
         session?.begin()
-        
-        self.scanCompletion = completion
+
+        scanCompletion = completion
     }
-    
-    
+
     private var scanCompletion: ((String) -> Void)?
-    
-    
+
     func readerSession(_ session: NFCNDEFReaderSession, didDetectNDEFs messages: [NFCNDEFMessage]) {
         for message in messages {
             for record in message.records {
                 if let rawString = String(data: record.payload, encoding: .utf8) {
                     print("scanned data: \(rawString)")
-                    parseNFCData(rawString) {message in
+                    parseNFCData(rawString) { message in
                         self.scanCompletion?(message)
                     }
                 }
             }
         }
     }
-    
+
     func readerSession(_ session: NFCNDEFReaderSession, didInvalidateWithError error: any Error) {
         print("NFC scanning failed: \(error.localizedDescription)")
     }
-    
-    
-    private func parseNFCData(_ rawData:String, completion: @escaping (String) -> Void){ // nfc data manipulation
+
+    func saveXpAndLevelFS() {
+        guard let user = Auth.auth().currentUser else {
+            print("User not authed")
+            return
+        }
+
+        let db = Firestore.firestore()
+        let userRef = db.collection("users").document(user.uid)
+
+        userRef.getDocument { _, error in
+            if let error = error {
+                print("Error fetching user data: \(error.localizedDescription)")
+                return
+            }
+            
+            let updatedXp = UserLocal.currentUser?.xp ?? 0
+            let updatedLevel = UserLocal.currentUser?.level ?? 0
+
+            userRef.updateData([
+                "xp": updatedXp, // update data in firestore with new data as this is ran after add xp
+                "level": updatedLevel
+            ]) { error in
+                if let error = error {
+                    print("Error updating xp or level: \(error.localizedDescription)")
+                } else {
+                    print("XP and level successfully updated in Firestore")
+                    UserLocal.currentUser?.xpStored = 0 // Reset stored XP
+                }
+            }
+        }
+    }
+
+    private func parseNFCData(_ rawData: String, completion: @escaping (String) -> Void) { // nfc data manipulation
         let cleanedData = rawData.filter { $0.isASCII && $0.isLetter || $0.isNumber || $0 == "=" || $0 == ";" } // clearing hidden data on tag text
         let sanitizedData = cleanedData.replacingOccurrences(of: "en", with: "") // remove language encoding
         let keyValuePairs = sanitizedData.split(separator: ";") // split data if there is a semicolon used for testing multiple data
         var parsedData: [String: String] = [:]
-        
+
         for pair in keyValuePairs {
             let components = pair.split(separator: "=", maxSplits: 1)
             if components.count == 2 {
@@ -198,12 +219,12 @@ class NFCScanner: NSObject, NFCNDEFReaderSessionDelegate{
                 parsedData[key] = value
             }
         }
-        
-        guard let roomName = parsedData["room"] else{
+
+        guard let roomName = parsedData["room"] else {
             print("NFC Data incorect room not found")
             return
         }
-        
+
         let db = Firestore.firestore()
         let roomRef = db.collection("Rooms").document(roomName)
         roomRef.getDocument { document, error in
@@ -211,19 +232,29 @@ class NFCScanner: NSObject, NFCNDEFReaderSessionDelegate{
                 print("Error fetching room doc: \(error.localizedDescription)")
                 return
             }
-            
+
             guard let document = document, document.exists else {
                 print("Room \(roomName) not found in firestore")
                 return
             }
-            
+
             guard let user = Auth.auth().currentUser,
                   let username = UserLocal.currentUser?.username,
                   let team = UserLocal.currentUser?.team else {
                 print("User not authed or missing data")
                 return
             }
-            
+
+            let currentOwner = document.data()?["userowner"] as? String ?? ""
+
+            print(currentOwner)
+
+            if currentOwner == username {
+                print("User already owns this room")
+                completion("You already own this room")
+                return
+            }
+
             roomRef.updateData([
                 "userowner": username,
                 "teamowner": team,
@@ -232,7 +263,27 @@ class NFCScanner: NSObject, NFCNDEFReaderSessionDelegate{
                     print("Failed to update room: \(error.localizedDescription)")
                     completion("Failed to claim room")
                 } else {
+                    UserLocal.currentUser?.xpStored += 20
                     print("Room successfully updated")
+                    
+                    let maxXp: CGFloat = 200
+                    var currentXp = UserLocal.currentUser?.xp ?? 0
+                    let storedXp = UserLocal.currentUser?.xpStored ?? 0
+                    let totalXp = currentXp + storedXp
+                    
+                    
+                    if totalXp >= maxXp {
+                        let overflowXp = totalXp - maxXp // XP carried over to next level
+                        let levelsGained = Int(totalXp / maxXp) // How many levels to increase
+
+                        UserLocal.currentUser?.level += levelsGained
+                        UserLocal.currentUser?.xp = overflowXp // XP left after leveling up
+                    } else {
+                        UserLocal.currentUser?.xp = totalXp
+                    }
+                    self.saveXpAndLevelFS()
+
+                    UserLocal.currentUser?.xpStored = 0
                     completion("Successfully claimed \(roomName) for \(team)")
                 }
             }
@@ -240,16 +291,13 @@ class NFCScanner: NSObject, NFCNDEFReaderSessionDelegate{
     }
 }
 
-
-
-
-
 // Acutal page below this
 
 struct Maps: View {
     @State private var userLocation: CLLocationCoordinate2D? = nil
     @State private var scanner = NFCScanner()
     @State private var showAlert = false
+    @State private var showCaptureAlert = false
     @State private var alertMessage = ""
     @State private var roomLocations: [RoomLocation] = []
     @State private var hasSetInitialCamera = false
@@ -268,7 +316,7 @@ struct Maps: View {
                         self.alertMessage = message
                         self.showAlert = true
                     }
-                }){
+                }) {
                     Image(systemName: "dot.radiowaves.up.forward")
                         .foregroundColor(.white)
                         .padding(12)
@@ -280,37 +328,37 @@ struct Maps: View {
                 }
             }
             .background(Color.background.ignoresSafeArea())
-            .alert(isPresented: $showAlert){
+            .alert(isPresented: $showAlert) {
                 Alert(title: Text("Room Capture"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
             }
-            .onAppear{
+            .onAppear {
                 startListeningForRoomUpdates()
             }
             .navigationBarBackButtonHidden(true)
         }
     }
+
     func startListeningForRoomUpdates() {
         let db = Firestore.firestore()
-        
+
         db.collection("Rooms").addSnapshotListener { snapshot, error in
             if let error = error {
                 print("Error getting room updates: \(error.localizedDescription)")
                 return
             }
-            
+
             guard let documents = snapshot?.documents else { return }
-            
+
             var locations: [RoomLocation] = []
-            
+
             for doc in documents {
                 let data = doc.data()
-                
+
                 if let name = data["roomname"] as? String,
                    let latitude = data["roomlat"] as? Double,
                    let longitude = data["roomlon"] as? Double {
-                    
                     let teamOwner = data["teamowner"] as? String ?? "unclaimed"
-                    
+
                     let room = RoomLocation(
                         id: doc.documentID,
                         name: name,
@@ -318,13 +366,13 @@ struct Maps: View {
                         longitude: longitude,
                         teamOwner: teamOwner
                     )
-                    
+
                     locations.append(room)
                 } else {
                     print("Skipping invalid document: \(doc.documentID)")
                 }
             }
-            
+
             DispatchQueue.main.async {
                 self.roomLocations = locations
             }
