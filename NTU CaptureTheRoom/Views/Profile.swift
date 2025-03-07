@@ -10,38 +10,7 @@ import SwiftUI
 import Combine
 import FirebaseFirestore
 
-struct XpBar: View {
-    @State private var currentXp = UserLocal.currentUser?.xp ?? 0
-    @State private var maxXp: CGFloat = 200
-
-    var body: some View {
-        VStack(spacing: 20) {
-            ZStack(alignment: .leading) {
-                
-                    
-                RoundedRectangle(cornerRadius: 10)
-                    .frame(width: 300, height: 20)
-                    .foregroundColor(Color.gray.opacity(0.3))
-
-                RoundedRectangle(cornerRadius: 10)
-                    .frame(width: (currentXp / maxXp) * 300, height: 20)
-                    .foregroundColor(.green)
-                    .animation(.easeInOut(duration: 1.5), value: currentXp)
-                
-                Text("XP: \(Int(currentXp)) / \(Int(maxXp))")
-                    .font(.headline)
-                    .frame(width: 300, height: 20, alignment: .center)
-            }
-        }
-        .padding()
-        .onAppear(){
-            currentXp = UserLocal.currentUser?.xp ?? 0
-        }
-    }
-}
-
 struct Profile: View {
-    @State private var showSettings = false
 
     var body: some View {
         VStack {
@@ -77,6 +46,8 @@ struct Profile: View {
             VStack {
                 XpBar()
             }
+            
+            
 
             Spacer()
         }

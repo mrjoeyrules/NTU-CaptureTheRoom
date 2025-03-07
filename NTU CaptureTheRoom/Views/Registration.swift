@@ -61,6 +61,8 @@ struct Registration: View{
             let username = data["username"] as! String ?? "unknown"
             let team = data["team"] as? String ?? "unknown"
             let xp = data["xp"] as! CGFloat
+            let totalsteps = data["totalsteps"] as! Int
+            let roomscapped = data["roomscapped"] as! Int
             let level = data["level"] as! Int
             let setUpStatus = data["setupstatus"] as? String ?? "notSetUp"
             
@@ -69,6 +71,8 @@ struct Registration: View{
             userLocal.setUpStatus = setUpStatus
             userLocal.user = Auth.auth().currentUser
             userLocal.level = level
+            userLocal.roomsCapped = roomscapped
+            userLocal.totalSteps = totalsteps
             userLocal.xp = xp
             UserLocal.currentUser = userLocal
             completion(.success(()))
@@ -113,7 +117,9 @@ struct Registration: View{
             "xp": UserLocal.currentUser?.xp ?? 0,
             "username": "unselected",
             "team": "unselected",
-            "setupstatus": "in-progress"
+            "setupstatus": "in-progress",
+            "roomscapped": UserLocal.currentUser?.roomsCapped ?? 0,
+            "totalsteps": UserLocal.currentUser?.totalSteps ?? 0
             ]
         db.collection("users").document(user.uid).setData(userData){ error in
             if let error = error {

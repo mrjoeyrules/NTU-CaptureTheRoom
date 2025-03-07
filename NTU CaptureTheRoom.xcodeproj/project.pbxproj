@@ -498,6 +498,7 @@
 				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "We require Bluetooth access to detect nearby rooms and capture them";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "We require your location to display your location on the map when using the application";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We require your location to display your location on the map when using the application";
+				INFOPLIST_KEY_NSMotionUsageDescription = "We require your motion data to track your steps while using maps in the app";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -535,6 +536,7 @@
 				INFOPLIST_KEY_NSBluetoothPeripheralUsageDescription = "We require Bluetooth access to detect nearby rooms and capture them";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "We require your location to display your location on the map when using the application";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We require your location to display your location on the map when using the application";
+				INFOPLIST_KEY_NSMotionUsageDescription = "We require your motion data to track your steps while using maps in the app";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";

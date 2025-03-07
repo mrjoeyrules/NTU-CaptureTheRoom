@@ -49,8 +49,24 @@ class UserLocal{
             _xpStored = newXpStored
         }
     }
-    
-    
+    private var _roomsCapped: Int = 0
+    var roomsCapped: Int{
+        get{
+            return _roomsCapped
+        }
+        set(newRoomscapped){
+            _roomsCapped = newRoomscapped
+        }
+    }
+    private var _totalSteps: Int = 0
+    var totalSteps: Int{
+        get{
+            return _totalSteps
+        }
+        set(newTotalSteps){
+            _totalSteps = newTotalSteps
+        }
+    }
     
     private var _level: Int = 1
     var level: Int{
