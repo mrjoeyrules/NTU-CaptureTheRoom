@@ -1,24 +1,20 @@
 
 
-import Foundation
-import SwiftUI
 import FirebaseAuth
 import FirebaseCore
-import GoogleSignIn
 import FirebaseFirestore
+import Foundation
+import GoogleSignIn
+import SwiftUI
 
-enum ActiveAlert{ // set cases for the active alert
-    case first, second, third, fourth, fifth, sixth, seventh
+enum ActiveAlert { // set cases for the active alert
+    case first, second, third, fourth, fifth, sixth, seventh, eighth
 }
 
-
-
-struct Registration: View{
-    
-    
+struct Registration: View {
     let twitterProvider = OAuthProvider(providerID: "twitter.com")
     let gitProvider = OAuthProvider(providerID: "github.com")
-    
+
     // variables for various uses within page.
     @State var email: String = "" // inputed email
     @State var isFirstLogin = false
@@ -31,10 +27,10 @@ struct Registration: View{
     @State var activeAlert: ActiveAlert = .first // which alert flag
     @State var isEmailLogin: Bool = false
     let logo = "NTUShieldLogo" // name of logo picture
-    
+
     func showAlert(for alert: ActiveAlert) {
-        self.activeAlert = alert
-        self.showAlert = false // Ensure refresh
+        activeAlert = alert
+        showAlert = false // Ensure refresh
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             self.showAlert = true
         }
@@ -47,8 +43,8 @@ struct Registration: View{
         }
         let db = Firestore.firestore()
         let userDocRef = db.collection("users").document(uid)
-        userDocRef.getDocument(){ documentSnapshot, error in
-            if let error = error{
+        userDocRef.getDocument { documentSnapshot, error in
+            if let error = error {
                 print(error.localizedDescription)
                 completion(.failure(error))
                 return
@@ -66,11 +62,11 @@ struct Registration: View{
             let level = data["level"] as! Int
             let totalXp = data["totalxp"] as! CGFloat
             var formattedDate: String = "Unknown Date"
-            if let dateJoined = data["createdAt"] as? Timestamp{
+            if let dateJoined = data["createdAt"] as? Timestamp {
                 formattedDate = formatDate(dateJoined.dateValue())
             }
             let setUpStatus = data["setupstatus"] as? String ?? "notSetUp"
-            
+
             let userLocal = UserLocal(username: username)
             userLocal.team = team
             userLocal.setUpStatus = setUpStatus
@@ -83,30 +79,27 @@ struct Registration: View{
             userLocal.xp = xp
             UserLocal.currentUser = userLocal
             completion(.success(()))
-            
         }
     }
-    
+
     func formatDate(_ date: Date) -> String { // formats date
         let formatter = DateFormatter()
         formatter.dateStyle = .long
         formatter.timeStyle = .none // removes time stamp from date
         return formatter.string(from: date)
     }
-    
-    
-    
+
     func checkIfUserDocExists(uid: String, completion: @escaping (Result<Bool, Error>) -> Void) {
         let db = Firestore.firestore()
         let userDocReference = db.collection("users").document(uid)
-        
+
         userDocReference.getDocument { documentSnapshot, error in
             if let error = error {
                 print("Error checking document: \(error.localizedDescription)")
                 completion(.failure(error))
                 return
             }
-            
+
             if let document = documentSnapshot, document.exists {
                 print("Document for this user \(uid) exists")
                 completion(.success(true))
@@ -116,12 +109,10 @@ struct Registration: View{
             }
         }
     }
-    
-    
-    func saveUserDateToFirestore(user: User,loginType: String , completion: @escaping (Error?) -> Void){
+
+    func saveUserDateToFirestore(user: User, loginType: String, completion: @escaping (Error?) -> Void) {
         let db = Firestore.firestore()
-        
-        
+
         let userData: [String: Any] = [
             "uid": user.uid,
             "email": user.email ?? "",
@@ -134,9 +125,9 @@ struct Registration: View{
             "setupstatus": "in-progress",
             "roomscapped": UserLocal.currentUser?.roomsCapped ?? 0,
             "totalsteps": UserLocal.currentUser?.totalSteps ?? 0,
-            "totalxp": UserLocal.currentUser?.totalXp ?? 0
-            ]
-        db.collection("users").document(user.uid).setData(userData){ error in
+            "totalxp": UserLocal.currentUser?.totalXp ?? 0,
+        ]
+        db.collection("users").document(user.uid).setData(userData) { error in
             if let error = error {
                 print("Error writing document: \(error)")
                 completion(error)
@@ -144,20 +135,16 @@ struct Registration: View{
                 print("Document successfully written!")
                 completion(nil)
             }
-            
         }
-        
     }
-    
-    
-    
-    func RegisterX(){
-        twitterProvider.getCredentialWith(nil){ twitterCredential, error in
-            if error != nil{
+
+    func RegisterX() {
+        twitterProvider.getCredentialWith(nil) { twitterCredential, error in
+            if error != nil {
                 print(error?.localizedDescription ?? "error")
             }
-            if twitterCredential != nil{
-                Auth.auth().signIn(with: twitterCredential!){ authResult, error in
+            if twitterCredential != nil {
+                Auth.auth().signIn(with: twitterCredential!) { authResult, error in
                     if let error = error as? NSError {
                         // Check error code instead of localizedDescription
                         switch AuthErrorCode(rawValue: error.code) {
@@ -170,16 +157,16 @@ struct Registration: View{
                         }
                         return
                     }
-                    guard let user = authResult?.user else {return}
-                    
-                    checkIfUserDocExists(uid: user.uid){ result in
-                        switch result{
-                        case .success(let exists):
-                            if exists{
+                    guard let user = authResult?.user else { return }
+
+                    checkIfUserDocExists(uid: user.uid) { result in
+                        switch result {
+                        case let .success(exists):
+                            if exists {
                                 isFirstLogin = false
-                                getStoredUserInfo{ result in
-                                    switch result{
-                                    case.success:
+                                getStoredUserInfo { result in
+                                    switch result {
+                                    case .success:
                                         print("User data stored successfully")
                                         isTwitterLogin = true
                                         showAlert(for: .second)
@@ -187,16 +174,16 @@ struct Registration: View{
                                         print("Failed to get user data")
                                     }
                                 }
-                            }else{
+                            } else {
                                 isFirstLogin = true
-                                saveUserDateToFirestore(user: user, loginType: "Twitter"){ error2 in
-                                    if let error2 = error{
+                                saveUserDateToFirestore(user: user, loginType: "Twitter") { _ in
+                                    if let error2 = error {
                                         print(error2.localizedDescription)
                                     }
                                 }
-                                getStoredUserInfo{ result in
-                                    switch result{
-                                    case.success:
+                                getStoredUserInfo { result in
+                                    switch result {
+                                    case .success:
                                         print("User data stored successfully")
                                         isTwitterLogin = true
                                         showAlert(for: .second)
@@ -205,7 +192,7 @@ struct Registration: View{
                                     }
                                 }
                             }
-                        case .failure(let error):
+                        case let .failure(error):
                             print(error.localizedDescription)
                         }
                     }
@@ -213,7 +200,8 @@ struct Registration: View{
             }
         }
     }
-    func RegisterGithub(){
+
+    func RegisterGithub() {
         print("Register with Github")
         gitProvider.getCredentialWith(nil) { gitCredential, error in
             if error != nil {
@@ -234,18 +222,18 @@ struct Registration: View{
                         }
                         return
                     }
-                    
+
                     guard let oauthCredential = authResult?.credential as? OAuthCredential else { return }
-                    guard let user = authResult?.user else {return}
+                    guard let user = authResult?.user else { return }
                     _ = oauthCredential.accessToken
-                    checkIfUserDocExists(uid: user.uid){ result in
-                        switch result{
-                        case .success(let exists):
-                            if exists{
+                    checkIfUserDocExists(uid: user.uid) { result in
+                        switch result {
+                        case let .success(exists):
+                            if exists {
                                 isFirstLogin = false
-                                getStoredUserInfo{ result in
-                                    switch result{
-                                    case.success:
+                                getStoredUserInfo { result in
+                                    switch result {
+                                    case .success:
                                         print("User data stored successfully")
                                         isGitLogin = true
                                         showAlert(for: .second)
@@ -253,19 +241,19 @@ struct Registration: View{
                                         print("Failed to get user data")
                                     }
                                 }
-                            }else{
+                            } else {
                                 isFirstLogin = true
-                                saveUserDateToFirestore(user: user, loginType: "GitHub"){ error2 in
-                                    if let error2 = error{
+                                saveUserDateToFirestore(user: user, loginType: "GitHub") { _ in
+                                    if let error2 = error {
                                         print(error2.localizedDescription)
                                     }
                                     isGitLogin = true
                                     UserLocal.currentUser?.user = user
                                     showAlert(for: .second)
                                 }
-                                getStoredUserInfo{ result in
-                                    switch result{
-                                    case.success:
+                                getStoredUserInfo { result in
+                                    switch result {
+                                    case .success:
                                         print("User data stored successfully")
                                         isGitLogin = true
                                         showAlert(for: .second)
@@ -274,27 +262,23 @@ struct Registration: View{
                                     }
                                 }
                             }
-                        case .failure(let error):
+                        case let .failure(error):
                             print(error.localizedDescription)
                         }
                     }
-                    
                 }
-                   
             }
         }
     }
-    
-    
-    
-    func RegisterGoogle(){
-        guard let clientId = FirebaseApp.app()?.options.clientID else {return}
-        
+
+    func RegisterGoogle() {
+        guard let clientId = FirebaseApp.app()?.options.clientID else { return }
+
         _ = GIDConfiguration(clientID: clientId)
-        
-        GIDSignIn.sharedInstance.signIn(withPresenting: ApplicationUtility.rootViewController){
+
+        GIDSignIn.sharedInstance.signIn(withPresenting: ApplicationUtility.rootViewController) {
             signResult, err in
-            if let error = err{
+            if let error = err {
                 print(error.localizedDescription)
                 return
             }
@@ -304,8 +288,8 @@ struct Registration: View{
                 return
             }
             let credential = GoogleAuthProvider.credential(withIDToken: idToken.tokenString, accessToken: user.accessToken.tokenString)
-            
-            Auth.auth().signIn(with: credential) {result, error in
+
+            Auth.auth().signIn(with: credential) { result, error in
                 if let error = error as? NSError {
                     print(error.code)
                     // Check error code instead of localizedDescription
@@ -319,15 +303,15 @@ struct Registration: View{
                     }
                     return
                 }
-                guard let user = result?.user else {return}
-               
-                checkIfUserDocExists(uid: user.uid){ result in
-                    switch result{
-                    case .success(let exists):
-                        if exists{
-                            getStoredUserInfo{ result in
-                                switch result{
-                                case.success:
+                guard let user = result?.user else { return }
+
+                checkIfUserDocExists(uid: user.uid) { result in
+                    switch result {
+                    case let .success(exists):
+                        if exists {
+                            getStoredUserInfo { result in
+                                switch result {
+                                case .success:
                                     print("User data stored successfully")
                                     isGoogleLogIn = true
                                     showAlert(for: .second)
@@ -336,51 +320,45 @@ struct Registration: View{
                                 }
                             }
                             isFirstLogin = false
-                        }else{
+                        } else {
                             isFirstLogin = true
-                            saveUserDateToFirestore(user: user, loginType: "Google"){ error2 in
-                                if let error2 = error{
+                            saveUserDateToFirestore(user: user, loginType: "Google") { _ in
+                                if let error2 = error {
                                     print(error2.localizedDescription)
                                 }
                             }
-                            getStoredUserInfo{ result in
-                                switch result{
-                                case.success:
+                            getStoredUserInfo { result in
+                                switch result {
+                                case .success:
                                     print("User data stored successfully")
                                     isGoogleLogIn = true
-                                    
+
                                     showAlert(for: .second)
                                 case .failure:
                                     print("Failed to get user data")
                                 }
                             }
                         }
-                    case .failure(let error):
+                    case let .failure(error):
                         print(error.localizedDescription)
                     }
                 }
             }
         }
-        
     }
-    
-    
-    
-    
-    func register(){ // runs code when register button is pressed
-        self.showAlert = false
-        if email.isEmpty || password.isEmpty || confirmPassword.isEmpty{
+
+    func register() { // runs code when register button is pressed
+        showAlert = false
+        if email.isEmpty || password.isEmpty || confirmPassword.isEmpty {
             showAlert(for: .first)
         }
-        if password != confirmPassword{ // if passwords dont match flag as invalid
+        if password != confirmPassword { // if passwords dont match flag as invalid
             showAlert(for: .first)
-            
-        }
-        else{
-            
+        } else {
             Auth.auth().createUser(withEmail: email, password: password) { result, error in
                 print(error?.localizedDescription ?? "error")
                 if let error = error as? NSError {
+                    print("full error \(error)")
                     // Check error code instead of localizedDescription
                     switch AuthErrorCode(rawValue: error.code) {
                     case .emailAlreadyInUse:
@@ -389,22 +367,30 @@ struct Registration: View{
                         showAlert(for: .seventh)
                     case .invalidRecipientEmail:
                         showAlert(for: .fifth)
+                    case .weakPassword:
+                        showAlert(for: .eighth)
                     default:
+                        if error.domain == "FIRAuthErrorDomain", let underlyingError = error.userInfo[NSUnderlyingErrorKey] as? NSError,
+                           let errorDetails = underlyingError.userInfo["FIRAuthErrorUserInfoDeserializedResponseKey"] as? [String: Any],
+                           let message = errorDetails["message"] as? String,
+                           message.contains("PASSWORD_DOES_NOT_MEET_REQUIREMENTS") {
+                            showAlert(for: .eighth)
+                        }
+
                         print("Error signing in: \(error.localizedDescription)")
                     }
                     return
-                }
-                else{
+                } else {
                     guard let user = result?.user else { return }
                     isFirstLogin = true
-                    saveUserDateToFirestore(user: user, loginType: "Email"){ error2 in
-                        if let error2 = error{
+                    saveUserDateToFirestore(user: user, loginType: "Email") { _ in
+                        if let error2 = error {
                             print(error2.localizedDescription)
                         }
                     }
-                    getStoredUserInfo{ result in
-                        switch result{
-                        case.success:
+                    getStoredUserInfo { result in
+                        switch result {
+                        case .success:
                             print("User data stored successfully")
                             isEmailLogin = true
                             showAlert(for: .second)
@@ -416,24 +402,20 @@ struct Registration: View{
             }
         }
     }
-    
-    
-    var body: some View{
-        
-        NavigationStack{
-            if (isGoogleLogIn == true || isEmailLogin == true || isGitLogin == true || isTwitterLogin == true) && (isFirstLogin == true || UserLocal.currentUser?.setUpStatus == "in-progress" || UserLocal.currentUser?.setUpStatus == "notSetUp"){
+
+    var body: some View {
+        NavigationStack {
+            if (isGoogleLogIn == true || isEmailLogin == true || isGitLogin == true || isTwitterLogin == true) && (isFirstLogin == true || UserLocal.currentUser?.setUpStatus == "in-progress" || UserLocal.currentUser?.setUpStatus == "notSetUp") {
                 FirstUserInfo()
-            }
-            else if(isGoogleLogIn == true || isGitLogin == true || isTwitterLogin == true || isEmailLogin == true) && isFirstLogin == false && UserLocal.currentUser?.setUpStatus == "complete"{
+            } else if (isGoogleLogIn == true || isGitLogin == true || isTwitterLogin == true || isEmailLogin == true) && isFirstLogin == false && UserLocal.currentUser?.setUpStatus == "complete" {
                 Tabs(selectedTab: .maps)
-            }
-            else{
-                VStack{
+            } else {
+                VStack {
                     Image(logo) // App logo
                         .resizable()
-                        .frame(width: 100 , height: 100)
+                        .frame(width: 100, height: 100)
                         .padding()
-                    ZStack{
+                    ZStack {
                         Text("Welcome to the NTU Capture the room App \nPlease register to use the app")
                             .padding() // welcome text
                             .foregroundStyle(Color.white)
@@ -447,16 +429,15 @@ struct Registration: View{
                                 RoundedRectangle(cornerRadius: 20) // creates a rectangle to cover and match the text field
                                     .stroke(Color.actionColour, lineWidth: 1) // Border color
                             )
-                        TextField("",text: $email, prompt: Text("Email").foregroundStyle(Color.black.opacity(0.5))) // email text field
+                        TextField("", text: $email, prompt: Text("Email").foregroundStyle(Color.black.opacity(0.5))) // email text field
                             .autocapitalization(.none)
                             .textContentType(.emailAddress)
                             .foregroundColor(.black) // Text color
                             .padding(.horizontal) // Padding inside the text field
                             .frame(height: 50)
-                        
                     }
                     .padding(.horizontal) // Outer padding
-                    
+
                     ZStack {
                         RoundedRectangle(cornerRadius: 20)
                             .fill(Color.white) // Background color matches the rectangle
@@ -473,7 +454,7 @@ struct Registration: View{
                             .frame(height: 50)
                     }
                     .padding(.horizontal) // Outer padding
-                    
+
                     ZStack {
                         RoundedRectangle(cornerRadius: 20)
                             .fill(Color.white) // Background color matches the rectangle
@@ -486,26 +467,26 @@ struct Registration: View{
                             .autocapitalization(.none)
                             .textContentType(.name)
                             .foregroundColor(.black) // Text color
-                            .padding(.horizontal)// Padding inside the text field
+                            .padding(.horizontal) // Padding inside the text field
                             .frame(height: 50)
                     }
                     .padding(.horizontal) // Outer padding
-                    ZStack{
-                        Button(action: register){ // button to register an email account
+                    ZStack {
+                        Button(action: register) { // button to register an email account
                             Text("Register")
                                 .padding()
                                 .foregroundStyle(Color.white)
                                 .background(
                                     RoundedRectangle(
                                         cornerRadius: 20, style: .continuous)
-                                    .fill(.actionColour))
-                            
-                                .alert(isPresented: $showAlert){ //different alerts that can pop up when registering
+                                        .fill(.actionColour))
+
+                                .alert(isPresented: $showAlert) { // different alerts that can pop up when registering
                                     switch activeAlert {
                                     case .first:
                                         return Alert(title: Text("Passwords do not match"), message: Text("Ensure that your passwords match"), dismissButton: .default(Text("Try Again"))) // is passwords do not match
                                     case .second:
-                                        return Alert(title: Text("Account Created"), message: Text("Your account has been created"), dismissButton: .default(Text("Continue")){
+                                        return Alert(title: Text("Account Created"), message: Text("Your account has been created"), dismissButton: .default(Text("Continue")) {
                                             isEmailLogin.toggle() // if everyhting is ok
                                         }
                                         )
@@ -519,25 +500,25 @@ struct Registration: View{
                                         return Alert(title: Text("Account already exists with email"), message: Text("An account already exists using this email but it is with another provider. Please sign in with that provider"), dismissButton: .default(Text("Try Again")))
                                     case .seventh:
                                         return Alert(title: Text("Account is disabled"), message: Text("This account has been disabled by an admin, please seek user support"), dismissButton: .default(Text("Try Again")))
-                                        
+                                    case .eighth:
+                                        return Alert(title: Text("Password too weak"), message: Text("Passwords must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number"), dismissButton: .default(Text("Try Again")))
                                     } // code found from https://stackoverflow.com/questions/58069516/how-can-i-have-two-alerts-on-one-view-in-swiftui
-                                    //User John M
-                                    
+                                    // User John M
                                 }
                             // Alert code is needed to display to different alerts based on one button.
                         }
                     }
-                    ZStack{
+                    ZStack {
                         Text("Or Register with one of the following options")
                             .foregroundColor(.white)
                             .padding()
                     }
-                    ZStack{
-                        HStack{
-                            Button{
+                    ZStack {
+                        HStack {
+                            Button {
                                 RegisterGoogle()
                             } label: {
-                                VStack{
+                                VStack {
                                     Image("GoogleLogo")
                                         .resizable()
                                         .frame(width: 30, height: 30)
@@ -546,11 +527,11 @@ struct Registration: View{
                                 }
                             }
                             .padding()
-                            
-                            Button{
+
+                            Button {
                                 RegisterX()
                             } label: {
-                                VStack{
+                                VStack {
                                     Image("XLogo")
                                         .resizable()
                                         .frame(width: 30, height: 30)
@@ -559,11 +540,11 @@ struct Registration: View{
                                 }
                             }
                             .padding()
-                            
-                            Button{
+
+                            Button {
                                 RegisterGithub()
                             } label: {
-                                VStack{
+                                VStack {
                                     Image("GithubLogo")
                                         .resizable()
                                         .frame(width: 30, height: 30)
@@ -574,8 +555,8 @@ struct Registration: View{
                             .padding()
                         }
                     }
-                    ZStack{
-                        NavigationLink(destination: Login()){
+                    ZStack {
+                        NavigationLink(destination: Login()) {
                             Text("Already have an account?")
                                 .foregroundColor(.white)
                                 .underline()
@@ -584,7 +565,7 @@ struct Registration: View{
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background{
+                .background {
                     Color.background
                         .ignoresSafeArea()
                 }
