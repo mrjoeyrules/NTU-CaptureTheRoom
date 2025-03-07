@@ -57,26 +57,39 @@ struct Login: View {
                 completion(.failure(NSError(domain: "Firestore error", code: 404, userInfo: [NSLocalizedDescriptionKey: "User doc not found"])))
                 return
             }
-            let username = data["username"] as! String ?? "unknown"
+            let username = data["username"] as! String
             let team = data["team"] as? String ?? "unknown"
             let xp = data["xp"] as! CGFloat
             let totalsteps = data["totalsteps"] as! Int
             let roomscapped = data["roomscapped"] as! Int
             let level = data["level"] as! Int
+            let totalXp = data["totalxp"] as! CGFloat
+            var formattedDate: String = "Unknown Date"
+            if let dateJoined = data["createdAt"] as? Timestamp{
+                formattedDate = formatDate(dateJoined.dateValue())
+            }
             let setUpStatus = data["setupstatus"] as? String ?? "notSetUp"
             
             let userLocal = UserLocal(username: username)
             userLocal.team = team
+            userLocal.setUpStatus = setUpStatus
             userLocal.user = Auth.auth().currentUser
             userLocal.level = level
-            userLocal.xp = xp
             userLocal.roomsCapped = roomscapped
+            userLocal.dateJoined = formattedDate
             userLocal.totalSteps = totalsteps
-            userLocal.setUpStatus = setUpStatus
+            userLocal.totalXp = totalXp
+            userLocal.xp = xp
             UserLocal.currentUser = userLocal
-            completion(.success(()))
             
         }
+    }
+    
+    func formatDate(_ date: Date) -> String { // formats date
+        let formatter = DateFormatter()
+        formatter.dateStyle = .long
+        formatter.timeStyle = .none // removes time stamp from date
+        return formatter.string(from: date)
     }
     
     
@@ -109,11 +122,12 @@ struct Login: View {
             "createdAt": Timestamp(date: Date()),
             "level": UserLocal.currentUser?.level ?? 1,
             "xp": UserLocal.currentUser?.xp ?? 0,
-            "team": "unselected",
             "username": "unselected",
+            "team": "unselected",
             "setupstatus": "in-progress",
             "roomscapped": UserLocal.currentUser?.roomsCapped ?? 0,
-            "totalsteps": UserLocal.currentUser?.totalSteps ?? 0
+            "totalsteps": UserLocal.currentUser?.totalSteps ?? 0,
+            "totalxp": UserLocal.currentUser?.totalXp ?? 0
         ]
         db.collection("users").document(user.uid).setData(userData){ error in
             if let error = error {

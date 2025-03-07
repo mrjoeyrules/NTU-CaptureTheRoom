@@ -47,7 +47,7 @@ class NFCScanner: NSObject, NFCNDEFReaderSessionDelegate {
         print("NFC scanning failed: \(error.localizedDescription)")
     }
 
-    func saveXpAndLevelFS() {
+    func saveUserStats() {
         guard let user = Auth.auth().currentUser else { // get current user for fs auth
             print("User not authed")
             return
@@ -64,10 +64,14 @@ class NFCScanner: NSObject, NFCNDEFReaderSessionDelegate {
             
             let updatedXp = UserLocal.currentUser?.xp ?? 0
             let updatedLevel = UserLocal.currentUser?.level ?? 0
+            let roomsCapped = UserLocal.currentUser?.roomsCapped ?? 0
+            let totalXp = UserLocal.currentUser?.totalXp ?? 0
 
             userRef.updateData([
                 "xp": updatedXp, // update data in firestore with new data as this is ran after add xp
-                "level": updatedLevel
+                "level": updatedLevel,
+                "roomscapped": roomsCapped,
+                "totalxp": totalXp
             ]) { error in
                 if let error = error {
                     print("Error updating xp or level: \(error.localizedDescription)")
@@ -135,6 +139,7 @@ class NFCScanner: NSObject, NFCNDEFReaderSessionDelegate {
                     print("Failed to update room: \(error.localizedDescription)")
                     completion("Failed to claim room")
                 } else {
+                    UserLocal.currentUser?.totalXp += 20
                     UserLocal.currentUser?.xpStored += 20 // add 20 xp to the xp stored
                     print("Room successfully updated")
                     
@@ -153,7 +158,8 @@ class NFCScanner: NSObject, NFCNDEFReaderSessionDelegate {
                     } else {
                         UserLocal.currentUser?.xp = totalXp
                     }
-                    self.saveXpAndLevelFS()
+                    UserLocal.currentUser?.roomsCapped += 1
+                    self.saveUserStats()
 
                     UserLocal.currentUser?.xpStored = 0
                     completion("Successfully claimed \(roomName) for \(team)")

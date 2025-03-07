@@ -58,6 +58,26 @@ class UserLocal{
             _roomsCapped = newRoomscapped
         }
     }
+    
+    private var _totalXp: CGFloat = 0
+    var totalXp: CGFloat{
+        get{
+            return _totalXp
+        }
+        set(newTotalXp){
+            _totalXp = newTotalXp
+        }
+    }
+    private var _dateJoined: String = ""
+    var dateJoined: String{
+        get{
+            return _dateJoined
+        }
+        set(newDateJoined){
+            _dateJoined = newDateJoined
+        }
+    }
+    
     private var _totalSteps: Int = 0
     var totalSteps: Int{
         get{

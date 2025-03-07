@@ -13,7 +13,8 @@ import FirebaseFirestore
 struct Profile: View {
 
     var body: some View {
-        VStack {
+        VStack(spacing: 10){
+            
             HStack {
                 Spacer()
                 NavigationLink(destination: Settings()) {
@@ -25,8 +26,9 @@ struct Profile: View {
                         .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
                 }
                 .padding(.trailing, 20)
-                .padding(.top, 10)
+                .padding(.top, 5)
             }
+            .frame(maxWidth: .infinity, alignment: .topTrailing)
 
             // Profile Title and Username
             VStack(spacing: 2) {
@@ -35,20 +37,33 @@ struct Profile: View {
                     .fontWeight(.bold)
 
                 Text(UserLocal.currentUser?.username ?? "Username not found")
-                    .font(.title)
+                    .font(.title2)
                     .fontWeight(.medium)
             }
-
-            VStack {
-                Text("Level: \(UserLocal.currentUser?.level ?? 0)")
-            }
+            .padding(.top, 10)
+            
+            // user level
+            Text("Level: \(UserLocal.currentUser?.level ?? 0)")
+                .font(.headline)
+                .padding(.top, 5)
+            
+            
             // XP Bar
-            VStack {
-                XpBar()
+            XpBar()
+                .padding(.top, 5)
+            
+            
+            VStack{
+                Text("User Statistics")
+                    .font(.headline)
+                    .bold()
+                    .padding(.bottom, 5)
+                UserStats()
             }
+            .padding()
+            .background(RoundedRectangle(cornerRadius: 15).fill(Color.background.opacity(0.2)))
+            .frame(maxWidth: .infinity, alignment: .top)
             
-            
-
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
