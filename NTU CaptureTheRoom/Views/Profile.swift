@@ -16,9 +16,9 @@ struct XpBar: View {
 
     var body: some View {
         VStack(spacing: 20) {
-            Text("XP: \(Int(currentXp)) / \(Int(maxXp))")
-                .font(.headline)
             ZStack(alignment: .leading) {
+                
+                    
                 RoundedRectangle(cornerRadius: 10)
                     .frame(width: 300, height: 20)
                     .foregroundColor(Color.gray.opacity(0.3))
@@ -27,6 +27,10 @@ struct XpBar: View {
                     .frame(width: (currentXp / maxXp) * 300, height: 20)
                     .foregroundColor(.green)
                     .animation(.easeInOut(duration: 1.5), value: currentXp)
+                
+                Text("XP: \(Int(currentXp)) / \(Int(maxXp))")
+                    .font(.headline)
+                    .frame(width: 300, height: 20, alignment: .center)
             }
         }
         .padding()
@@ -55,7 +59,7 @@ struct Profile: View {
                 .padding(.top, 10)
             }
 
-            // Profile Title & Username
+            // Profile Title and Username
             VStack(spacing: 2) {
                 Text("Profile")
                     .font(.title)

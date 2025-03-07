@@ -4,9 +4,7 @@
 //
 //  Created by Joseph Cuesta Acevedo on 02/12/2024.
 //
-// UUID - F789C93B-F0D9-4410-BBDB-F9A991E8CBB2
-import CoreBluetooth
-import CoreLocation
+import CoreLocation // Location tracking
 import CoreNFC
 import FirebaseAuth
 import FirebaseCore
@@ -33,19 +31,19 @@ struct GoogleMapView: UIViewRepresentable {
     @Binding var hasSetInitialCamera: Bool
 
     func resizeImage(image: UIImage, targetSize: CGSize) -> UIImage {
-        let size = image.size
+        let size = image.size // gets the passed images size
 
-        let widthRatio = targetSize.width / size.width
-        let heightRatio = targetSize.height / size.height
+        let widthRatio = targetSize.width / size.width // gets the width ratio based on target and image width
+        let heightRatio = targetSize.height / size.height // same but height
 
-        // Preserve aspect ratio
+        // Preserve aspect ratio of image being used
         let scaleFactor = min(widthRatio, heightRatio)
 
-        let newSize = CGSize(width: size.width * scaleFactor, height: size.height * scaleFactor)
-        let renderer = UIGraphicsImageRenderer(size: newSize)
+        let newSize = CGSize(width: size.width * scaleFactor, height: size.height * scaleFactor) // sets the new suze based on the target sizes and and the aspect ratio
+        let renderer = UIGraphicsImageRenderer(size: newSize) // creates a renderer using the new suze
 
         return renderer.image { _ in
-            image.draw(in: CGRect(origin: .zero, size: newSize))
+            image.draw(in: CGRect(origin: .zero, size: newSize)) // draws the new image with the new size and returns it
         }
     }
 
@@ -110,29 +108,29 @@ struct GoogleMapView: UIViewRepresentable {
         }
 
         for room in roomLocations {
-            let marker = GMSMarker()
-            marker.position = CLLocationCoordinate2D(latitude: room.latitude, longitude: room.longitude)
-            marker.title = room.name
-            marker.snippet = "Owned by: \(room.teamOwner ?? "unclaimed")"
+            let marker = GMSMarker() // creates an instance of GMSMarker
+            marker.position = CLLocationCoordinate2D(latitude: room.latitude, longitude: room.longitude) // gets marker position based on room lat and lon
+            marker.title = room.name // sets the marker title to the room name
+            marker.snippet = "Owned by: \(room.teamOwner ?? "unclaimed")" // changes the marker snippet to be a team owner text
 
-            switch room.teamOwner {
+            switch room.teamOwner { // if the team owner is any of the teams use the creates pin icon
             case "Grey":
                 if let image = UIImage(named: "GreyMarker") {
                     marker.icon = resizeImage(image: image, targetSize: CGSize(width: 40, height: 40))
                 }
             case "Blue":
-                if let image = UIImage(named: "BlueMarker") {
+                if let image = UIImage(named: "BlueMarker") { // selects the correct image from assets
                     marker.icon = resizeImage(image: image, targetSize: CGSize(width: 40, height: 40))
                 }
             case "Pink":
                 if let image = UIImage(named: "PinkMarker") {
-                    marker.icon = resizeImage(image: image, targetSize: CGSize(width: 40, height: 40))
+                    marker.icon = resizeImage(image: image, targetSize: CGSize(width: 40, height: 40)) // resize the image to be a normal size
                 }
             default:
-                marker.icon = GMSMarker.markerImage(with: .red)
+                marker.icon = GMSMarker.markerImage(with: .red) // if no team default to red
             }
 
-            marker.map = uiView
+            marker.map = uiView // ui view is GMSMapView push markers to map.
         }
     }
 }
@@ -148,8 +146,8 @@ class NFCScanner: NSObject, NFCNDEFReaderSessionDelegate {
         }
 
         session = NFCNDEFReaderSession(delegate: self, queue: nil, invalidateAfterFirstRead: true)
-        session?.alertMessage = "Hold your device near the rooms NFC tag"
-        session?.begin()
+        session?.alertMessage = "Hold your device near the rooms NFC tag" // default message when loading the iOS nfc scanning tool
+        session?.begin() // start the nfc session
 
         scanCompletion = completion
     }
@@ -174,13 +172,13 @@ class NFCScanner: NSObject, NFCNDEFReaderSessionDelegate {
     }
 
     func saveXpAndLevelFS() {
-        guard let user = Auth.auth().currentUser else {
+        guard let user = Auth.auth().currentUser else { // get current user for fs auth
             print("User not authed")
             return
         }
 
         let db = Firestore.firestore()
-        let userRef = db.collection("users").document(user.uid)
+        let userRef = db.collection("users").document(user.uid) // get doc from users collection with the document name being the users uid
 
         userRef.getDocument { _, error in
             if let error = error {
@@ -216,17 +214,17 @@ class NFCScanner: NSObject, NFCNDEFReaderSessionDelegate {
             if components.count == 2 {
                 let key = String(components[0]).trimmingCharacters(in: .whitespacesAndNewlines)
                 let value = String(components[1]).trimmingCharacters(in: .whitespacesAndNewlines)
-                parsedData[key] = value
+                parsedData[key] = value // splits room and name of room in nfc string on nfc tag. nfc tages consist of room=[ROOMNAME] this filters out the room= and just leaves the room name
             }
         }
 
         guard let roomName = parsedData["room"] else {
             print("NFC Data incorect room not found")
-            return
+            return // if there isnt any data when the parsedData with the key room then data is incorrect
         }
 
-        let db = Firestore.firestore()
-        let roomRef = db.collection("Rooms").document(roomName)
+        let db = Firestore.firestore() // updates room info in rooms collection
+        let roomRef = db.collection("Rooms").document(roomName) // get doc from rooms collection with the roomname
         roomRef.getDocument { document, error in
             if let error = error {
                 print("Error fetching room doc: \(error.localizedDescription)")
@@ -238,24 +236,22 @@ class NFCScanner: NSObject, NFCNDEFReaderSessionDelegate {
                 return
             }
 
-            guard let user = Auth.auth().currentUser,
+            guard let user = Auth.auth().currentUser, // get user to allow use in fs
                   let username = UserLocal.currentUser?.username,
                   let team = UserLocal.currentUser?.team else {
                 print("User not authed or missing data")
                 return
             }
 
-            let currentOwner = document.data()?["userowner"] as? String ?? ""
+            let currentOwner = document.data()?["userowner"] as? String ?? "" // get the current owner from the room
 
-            print(currentOwner)
-
-            if currentOwner == username {
+            if currentOwner == username { // if user already owns this room return an alert
                 print("User already owns this room")
                 completion("You already own this room")
                 return
             }
 
-            roomRef.updateData([
+            roomRef.updateData([ // update the userowner and team owner
                 "userowner": username,
                 "teamowner": team,
             ]) { error in
@@ -263,10 +259,10 @@ class NFCScanner: NSObject, NFCNDEFReaderSessionDelegate {
                     print("Failed to update room: \(error.localizedDescription)")
                     completion("Failed to claim room")
                 } else {
-                    UserLocal.currentUser?.xpStored += 20
+                    UserLocal.currentUser?.xpStored += 20 // add 20 xp to the xp stored
                     print("Room successfully updated")
                     
-                    let maxXp: CGFloat = 200
+                    let maxXp: CGFloat = 200 // max xp per level is 200
                     var currentXp = UserLocal.currentUser?.xp ?? 0
                     let storedXp = UserLocal.currentUser?.xpStored ?? 0
                     let totalXp = currentXp + storedXp
@@ -305,7 +301,7 @@ struct Maps: View {
         NavigationStack {
             ZStack(alignment: .topTrailing) {
                 // Map Section
-                GoogleMapView(userLocation: $userLocation, roomLocations: $roomLocations, hasSetInitialCamera: $hasSetInitialCamera)
+                GoogleMapView(userLocation: $userLocation, roomLocations: $roomLocations, hasSetInitialCamera: $hasSetInitialCamera) // pass all neeeded parameters for maps set up
                     .edgesIgnoringSafeArea([.top, .leading, .trailing])
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Color.background)
@@ -317,7 +313,7 @@ struct Maps: View {
                         self.showAlert = true
                     }
                 }) {
-                    Image(systemName: "dot.radiowaves.up.forward")
+                    Image(systemName: "dot.radiowaves.up.forward") // what the scan button looks like
                         .foregroundColor(.white)
                         .padding(12)
                         .background(Color.actionColour)
@@ -329,7 +325,7 @@ struct Maps: View {
             }
             .background(Color.background.ignoresSafeArea())
             .alert(isPresented: $showAlert) {
-                Alert(title: Text("Room Capture"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
+                Alert(title: Text("Room Capture"), message: Text(alertMessage), dismissButton: .default(Text("OK"))) // alert info
             }
             .onAppear {
                 startListeningForRoomUpdates()
@@ -338,7 +334,7 @@ struct Maps: View {
         }
     }
 
-    func startListeningForRoomUpdates() {
+    func startListeningForRoomUpdates() { // gets all rooms from fs and adds them to a array of locations for use with markers
         let db = Firestore.firestore()
 
         db.collection("Rooms").addSnapshotListener { snapshot, error in
@@ -357,24 +353,24 @@ struct Maps: View {
                 if let name = data["roomname"] as? String,
                    let latitude = data["roomlat"] as? Double,
                    let longitude = data["roomlon"] as? Double {
-                    let teamOwner = data["teamowner"] as? String ?? "unclaimed"
+                    let teamOwner = data["teamowner"] as? String ?? "unclaimed" // get all info from fs and save as variables
 
                     let room = RoomLocation(
                         id: doc.documentID,
                         name: name,
                         latitude: latitude,
                         longitude: longitude,
-                        teamOwner: teamOwner
+                        teamOwner: teamOwner // creates an object of RoomLocations and fills the variable with info from fs
                     )
 
-                    locations.append(room)
+                    locations.append(room) // add to the array of RoomLocations
                 } else {
                     print("Skipping invalid document: \(doc.documentID)")
                 }
             }
 
             DispatchQueue.main.async {
-                self.roomLocations = locations
+                self.roomLocations = locations // after all is done set the roomLocations to the array of locations.
             }
         }
     }
