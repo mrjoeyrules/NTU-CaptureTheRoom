@@ -13,22 +13,25 @@ import FirebaseFirestore
 import FirebaseAuth
 
 enum ActiveAlert2{ // set cases for the active alert
-    case first, second, third, fourth, fifth, sixth
+    case first, second, third, fourth, fifth, sixth, seventh
 }
 
 
 struct Login: View {
     let twitterProvider = OAuthProvider(providerID: "twitter.com")
     let gitProvider = OAuthProvider(providerID: "github.com")
-    @State var email: String = ""
-    @State var password: String = ""
+    
+    // variables for various uses within page.
+    @State var email: String = "" // inputed email
+    @State var isFirstLogin = false
+    @State var password: String = "" // inputed password
+    @State var confirmPassword: String = "" // password re-entered
     @State var showAlert: Bool = false // show alert flag
     @State var isGoogleLogIn: Bool = false
     @State var isGitLogin: Bool = false
     @State var isTwitterLogin: Bool = false
-    @State var activeAlert: ActiveAlert2 = .first
-    @State  var isLoggedIn: Bool = false
-    @State var firstLogin: Bool = false
+    @State var activeAlert: ActiveAlert2 = .first // which alert flag
+    @State var isEmailLogin: Bool = false
     let logo = "NTUShieldLogo" // name of logo picture
     
     func showAlert(for alert: ActiveAlert2) {
@@ -81,6 +84,7 @@ struct Login: View {
             userLocal.totalXp = totalXp
             userLocal.xp = xp
             UserLocal.currentUser = userLocal
+            completion(.success(()))
             
         }
     }
@@ -94,27 +98,32 @@ struct Login: View {
     
     
     
-    func checkIfDocExists(user: User, completion: @escaping (Bool, Error?) -> Void){
+    func checkIfUserDocExists(uid: String, completion: @escaping (Result<Bool, Error>) -> Void) {
         let db = Firestore.firestore()
-        let docRef = db.collection("users").document(user.uid)
-        docRef.getDocument { document, error in
+        let userDocReference = db.collection("users").document(uid)
+        
+        userDocReference.getDocument { documentSnapshot, error in
             if let error = error {
-                print("Error fetching document: \(error.localizedDescription)")
-                completion(false, error)
+                print("Error checking document: \(error.localizedDescription)")
+                completion(.failure(error))
                 return
             }
             
-            if let document = document, document.exists {
-                completion(true, nil) // Document exists
+            if let document = documentSnapshot, document.exists {
+                print("Document for this user \(uid) exists")
+                completion(.success(true))
             } else {
-                completion(false, nil) // Document does not exist
+                print("Document not found for user \(uid)")
+                completion(.success(false))
             }
         }
     }
     
     
-    func saveUserDateToFirestore(user: User, loginType: String ,completion: @escaping (Error?) -> Void){
+    func saveUserDateToFirestore(user: User,loginType: String , completion: @escaping (Error?) -> Void){
         let db = Firestore.firestore()
+        
+        
         let userData: [String: Any] = [
             "uid": user.uid,
             "email": user.email ?? "",
@@ -128,7 +137,7 @@ struct Login: View {
             "roomscapped": UserLocal.currentUser?.roomsCapped ?? 0,
             "totalsteps": UserLocal.currentUser?.totalSteps ?? 0,
             "totalxp": UserLocal.currentUser?.totalXp ?? 0
-        ]
+            ]
         db.collection("users").document(user.uid).setData(userData){ error in
             if let error = error {
                 print("Error writing document: \(error)")
@@ -142,10 +151,146 @@ struct Login: View {
         
     }
     
+    func loginWithX(){
+        twitterProvider.getCredentialWith(nil){ twitterCredential, error in
+            if error != nil{
+                print(error?.localizedDescription ?? "error")
+            }
+            if twitterCredential != nil{
+                Auth.auth().signIn(with: twitterCredential!){ authResult, error in
+                    if let error = error as? NSError {
+                        // Check error code instead of localizedDescription
+                        switch AuthErrorCode(rawValue: error.code) {
+                        case .accountExistsWithDifferentCredential:
+                            showAlert(for: .sixth)
+                        case .userDisabled:
+                            showAlert(for: .seventh)
+                        default:
+                            print("Error signing in: \(error.localizedDescription)")
+                        }
+                        return
+                    }
+                    guard let user = authResult?.user else {return}
+                    
+                    checkIfUserDocExists(uid: user.uid){ result in
+                        switch result{
+                        case .success(let exists):
+                            if exists{
+                                isFirstLogin = false
+                                getStoredUserInfo{ result in
+                                    switch result{
+                                    case.success:
+                                        print("User data stored successfully")
+                                        isTwitterLogin = true
+                                        showAlert(for: .second)
+                                    case .failure:
+                                        print("Failed to get user data")
+                                    }
+                                }
+                            }else{
+                                isFirstLogin = true
+                                saveUserDateToFirestore(user: user, loginType: "Twitter"){ error2 in
+                                    if let error2 = error{
+                                        print(error2.localizedDescription)
+                                    }
+                                }
+                                getStoredUserInfo{ result in
+                                    switch result{
+                                    case.success:
+                                        print("User data stored successfully")
+                                        isTwitterLogin = true
+                                        showAlert(for: .second)
+                                    case .failure:
+                                        print("Failed to get user data")
+                                    }
+                                }
+                            }
+                        case .failure(let error):
+                            print(error.localizedDescription)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    func loginWithGithub(){
+        print("Register with Github")
+        gitProvider.getCredentialWith(nil) { gitCredential, error in
+            if error != nil {
+                print(error?.localizedDescription ?? "Error")
+            }
+            if gitCredential != nil {
+                Auth.auth().signIn(with: gitCredential!) { authResult, error in
+                    if let error = error as? NSError {
+                        print(error.code)
+                        // Check error code instead of localizedDescription
+                        switch AuthErrorCode(rawValue: error.code) {
+                        case .accountExistsWithDifferentCredential:
+                            showAlert(for: .sixth)
+                        case .userDisabled:
+                            showAlert(for: .seventh)
+                        default:
+                            print("Error signing in with GitHub: \(error.localizedDescription)")
+                        }
+                        return
+                    }
+                    
+                    guard let oauthCredential = authResult?.credential as? OAuthCredential else { return }
+                    guard let user = authResult?.user else {return}
+                    let accessToken = oauthCredential.accessToken
+                    checkIfUserDocExists(uid: user.uid){ result in
+                        switch result{
+                        case .success(let exists):
+                            if exists{
+                                isFirstLogin = false
+                                getStoredUserInfo{ result in
+                                    switch result{
+                                    case.success:
+                                        print("User data stored successfully")
+                                        isGitLogin = true
+                                        showAlert(for: .second)
+                                    case .failure:
+                                        print("Failed to get user data")
+                                    }
+                                }
+                            }else{
+                                isFirstLogin = true
+                                saveUserDateToFirestore(user: user, loginType: "GitHub"){ error2 in
+                                    if let error2 = error{
+                                        print(error2.localizedDescription)
+                                    }
+                                    isGitLogin = true
+                                    UserLocal.currentUser?.user = user
+                                    showAlert(for: .second)
+                                }
+                                getStoredUserInfo{ result in
+                                    switch result{
+                                    case.success:
+                                        print("User data stored successfully")
+                                        isGitLogin = true
+                                        showAlert(for: .second)
+                                    case .failure:
+                                        print("Failed to get user data")
+                                    }
+                                }
+                            }
+                        case .failure(let error):
+                            print(error.localizedDescription)
+                        }
+                    }
+                    
+                }
+                   
+            }
+        }
+    }
+    
+    
+    
     func loginWithGoogle(){
         guard let clientId = FirebaseApp.app()?.options.clientID else {return}
         
-        let config = GIDConfiguration(clientID: clientId)
+        _ = GIDConfiguration(clientID: clientId)
         
         GIDSignIn.sharedInstance.signIn(withPresenting: ApplicationUtility.rootViewController){
             signResult, err in
@@ -166,193 +311,57 @@ struct Login: View {
                     // Check error code instead of localizedDescription
                     switch AuthErrorCode(rawValue: error.code) {
                     case .accountExistsWithDifferentCredential:
-                        showAlert(for: .fourth)
+                        showAlert(for: .sixth)
                     case .userDisabled:
-                        showAlert(for: .fifth)
+                        showAlert(for: .seventh)
                     default:
                         print("Error signing in: \(error.localizedDescription)")
                     }
                     return
                 }
                 guard let user = result?.user else {return}
-                checkIfDocExists(user: user){ exists, error in
-                    if let error = error{
+               
+                checkIfUserDocExists(uid: user.uid){ result in
+                    switch result{
+                    case .success(let exists):
+                        if exists{
+                            getStoredUserInfo{ result in
+                                switch result{
+                                case.success:
+                                    print("User data stored successfully")
+                                    isGoogleLogIn = true
+                                    showAlert(for: .second)
+                                case .failure:
+                                    print("Failed to get user data")
+                                }
+                            }
+                            isFirstLogin = false
+                        }else{
+                            isFirstLogin = true
+                            saveUserDateToFirestore(user: user, loginType: "Google"){ error2 in
+                                if let error2 = error{
+                                    print(error2.localizedDescription)
+                                }
+                            }
+                            getStoredUserInfo{ result in
+                                switch result{
+                                case.success:
+                                    print("User data stored successfully")
+                                    isGoogleLogIn = true
+                                    
+                                    showAlert(for: .second)
+                                case .failure:
+                                    print("Failed to get user data")
+                                }
+                            }
+                        }
+                    case .failure(let error):
                         print(error.localizedDescription)
-                        return
-                    }
-                    if(!exists){
-                        print("doc doesn't exists")
-                        saveUserDateToFirestore(user: user, loginType: "Google") { error in
-                            if let error = error{
-                                print(error.localizedDescription)
-                                return
-                            }
-                            else{
-                                self.firstLogin = true
-                                
-                                getStoredUserInfo{ result in
-                                    switch result{
-                                    case.success:
-                                        print("User data stored successfully")
-                                        self.isGoogleLogIn = true
-                                        showAlert(for: .second)
-                                    case .failure:
-                                        print("Failed to get user data")
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    else{
-                        getStoredUserInfo{ result in
-                            switch result{
-                            case.success:
-                                print("User data stored successfully")
-                                self.isGoogleLogIn = true
-                                showAlert(for: .second)
-                            case .failure:
-                                print("Failed to get user data")
-                            }
-                        }
                     }
                 }
             }
         }
-    }
-    
-    func loginWithX(){
-        twitterProvider.getCredentialWith(nil){ twitterCredential, error in
-            if error != nil{
-                print(error?.localizedDescription)
-            }
-            if twitterCredential != nil{
-                Auth.auth().signIn(with: twitterCredential!){ authResult, error in
-                    if let error = error as? NSError {
-                        // Check error code instead of localizedDescription
-                        switch AuthErrorCode(rawValue: error.code) {
-                        case .accountExistsWithDifferentCredential:
-                            showAlert(for: .fourth)
-                        case .userDisabled:
-                            showAlert(for: .fifth)
-                        default:
-                            print("Error signing in with twitter: \(error.localizedDescription)")
-                        }
-                        return
-                    }
-                    guard let user = authResult?.user else {return}
-                    checkIfDocExists(user: user){ exists, error in
-                        if let error = error{
-                            print(error.localizedDescription)
-                            return
-                        }
-                        if(!exists){
-                            print("doc doesn't exists")
-                            saveUserDateToFirestore(user: user, loginType: "Twitter") { error in
-                                if let error = error{
-                                    print(error.localizedDescription)
-                                    return
-                                }
-                                
-                                self.firstLogin = true
-                                getStoredUserInfo{ result in
-                                    switch result{
-                                    case.success:
-                                        print("User data stored successfully")
-                                        self.isTwitterLogin = true
-                                        showAlert(for: .second)
-                                    case .failure:
-                                        print("Failed to get user data")
-                                    }
-                                }
-                            }
-                            
-                        }
-                        else{
-                            getStoredUserInfo{ result in
-                                switch result{
-                                case.success:
-                                    print("User data stored successfully")
-                                    self.isTwitterLogin = true
-                                    showAlert(for: .second)
-                                case .failure:
-                                    print("Failed to get user data")
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            
-        }
-    }
-    
-    
-    func loginWithGithub(){
-        print("Register with Github")
-        gitProvider.getCredentialWith(nil) { gitCredential, error in
-            if error != nil {
-                print(error?.localizedDescription)
-            }
-            if gitCredential != nil {
-                Auth.auth().signIn(with: gitCredential!) { authResult, error in
-                    if let error = error as? NSError {
-                        print(error.code)
-                        // Check error code instead of localizedDescription
-                        switch AuthErrorCode(rawValue: error.code) {
-                        case .accountExistsWithDifferentCredential:
-                            showAlert(for: .fourth)
-                        case .userDisabled:
-                            showAlert(for: .fifth)
-                        default:
-                            print("Error signing in: \(error.localizedDescription)")
-                        }
-                        return
-                    }
-                    
-                    guard let oauthCredential = authResult?.credential as? OAuthCredential else { return }
-                    guard let user = authResult?.user else { return }
-                    checkIfDocExists(user: user){ exists, error in
-                        if let error = error{
-                            print(error.localizedDescription)
-                            return
-                        }
-                        if(exists == false){
-                            print("doc doesn't exists")
-                            saveUserDateToFirestore(user: user, loginType: "GitHub") { error in
-                                if let error = error{
-                                    print(error.localizedDescription)
-                                    return
-                                }
-                                self.firstLogin = true
-                                getStoredUserInfo{ result in
-                                    switch result{
-                                    case.success:
-                                        print("User data stored successfully")
-                                        self.isGitLogin = true
-                                        showAlert(for: .second)
-                                    case .failure:
-                                        print("Failed to get user data")
-                                    }
-                                }
-                            }
-                            
-                        }
-                        else{
-                            getStoredUserInfo{ result in
-                                switch result{
-                                case.success:
-                                    print("User data stored successfully")
-                                    self.isGitLogin = true
-                                    showAlert(for: .second)
-                                case .failure:
-                                    print("Failed to get user data")
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        
     }
         
     func loginEmail(){
@@ -363,7 +372,7 @@ struct Login: View {
             return
         }
         Auth.auth().signIn(withEmail: email, password: password){ (result, error) in
-            print(error?.localizedDescription)
+            print(error?.localizedDescription ?? "error")
             if let error = error as? NSError {
                 print(error.code)
                 // Check error code instead of localizedDescription
@@ -392,7 +401,7 @@ struct Login: View {
                 switch result{
                 case.success:
                     print("User data stored successfully")
-                    self.isLoggedIn = true
+                    self.isEmailLogin = true
                     showAlert(for: .second)
                 case .failure:
                     print("Failed to get user data")
@@ -402,12 +411,14 @@ struct Login: View {
     }
     var body: some View {
         NavigationStack{
-            if firstLogin == true || (UserLocal.currentUser?.setUpStatus == "in-progress" || UserLocal.currentUser?.setUpStatus == "notSetUp"){
+            if (isGoogleLogIn == true || isEmailLogin == true || isGitLogin == true || isTwitterLogin == true) && (isFirstLogin == true || UserLocal.currentUser?.setUpStatus == "in-progress" || UserLocal.currentUser?.setUpStatus == "notSetUp"){
                 FirstUserInfo()
-            }else if(isGitLogin == true || isGoogleLogIn == true || isTwitterLogin == true || isLoggedIn == true) && UserLocal.currentUser?.setUpStatus == "complete"{
+            }
+            else if(isGoogleLogIn == true || isGitLogin == true || isTwitterLogin == true || isEmailLogin == true) && isFirstLogin == false && UserLocal.currentUser?.setUpStatus == "complete"{
                 Tabs(selectedTab: .maps)
-            }else{
-                    VStack{
+            }
+            else{
+                VStack{
                         Image(logo) // ntu logo at top
                             .resizable()
                             .frame(width: 100 , height: 100)
@@ -470,26 +481,26 @@ struct Login: View {
                                         RoundedRectangle(
                                             cornerRadius: 20, style: .continuous)
                                         .fill(.actionColour))
-                                    
                                 
                                     .alert(isPresented: $showAlert){ //different alerts that can pop up when registering
                                         switch activeAlert {
                                         case .first:
-                                            return Alert(title: Text("Email/Password is empty"), message: Text("Ensure that you enter an email and password"), dismissButton: .default(Text("Try Again"))) // is passwords do not match
+                                            return Alert(title: Text("Passwords do not match"), message: Text("Ensure that your passwords match"), dismissButton: .default(Text("Try Again"))) // is passwords do not match
                                         case .second:
                                             return Alert(title: Text("Account Created"), message: Text("Your account has been created"), dismissButton: .default(Text("Continue")){
-                                                isLoggedIn.toggle()// if everyhting is ok
+                                                isEmailLogin.toggle() // if everyhting is ok
                                             }
                                             )
                                         case .third:
                                             return Alert(title: Text("Email already is use"), message: Text("This email is already in use, sign in with that account or create another"), dismissButton: .default(Text("Try again")))
-                                            
                                         case .fourth:
-                                            return Alert(title: Text("Account already exists with email"), message: Text("An account already exists using this email but it is with another provider. Please sign in with that provider"), dismissButton: .default(Text("Try Again")))
+                                            return Alert(title: Text("Password is not strong enough"), message: Text("Your password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number"), dismissButton: .default(Text("Try Again")))
                                         case .fifth:
-                                            return Alert(title: Text("Account is disabled"), message: Text("This account has been disabled by an admin, please seek user support"), dismissButton: .default(Text("Try Again")))
+                                            return Alert(title: Text("Email is invalid"), message: Text("Enter a valid email address to create you account"), dismissButton: .default(Text("Try Again")))
                                         case .sixth:
-                                            return Alert(title: Text("Email or Password is incorrect"), message: Text("The entered email or password is incorrect. Please try again"), dismissButton: .default(Text("Try Again")))
+                                            return Alert(title: Text("Account already exists with email"), message: Text("An account already exists using this email but it is with another provider. Please sign in with that provider"), dismissButton: .default(Text("Try Again")))
+                                        case .seventh:
+                                            return Alert(title: Text("Account is disabled"), message: Text("This account has been disabled by an admin, please seek user support"), dismissButton: .default(Text("Try Again")))
                                             
                                         } // code found from https://stackoverflow.com/questions/58069516/how-can-i-have-two-alerts-on-one-view-in-swiftui
                                         //User John M

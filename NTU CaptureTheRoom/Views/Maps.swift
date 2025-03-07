@@ -23,6 +23,7 @@ struct Maps: View {
     @State private var alertMessage = ""
     @State private var roomLocations: [RoomLocation] = []
     @State private var hasSetInitialCamera = false
+    @State private var showLeaderboard = false
     var body: some View {
         NavigationStack {
             ZStack(alignment: .topTrailing) {
@@ -31,22 +32,49 @@ struct Maps: View {
                     .edgesIgnoringSafeArea([.top, .leading, .trailing])
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Color.background)
-
-                // Scan Room Button
-                Button(action: {
-                    scanner.beginScanning { message in
-                        self.alertMessage = message
-                        self.showAlert = true
+                
+                
+                
+                HStack{
+                    // leaderboard button
+                    Button(action: {
+                        showLeaderboard = true
+                    }) {
+                        Image(systemName: "chart.bar.fill")
+                            .foregroundStyle(.white)
+                            .padding(12)
+                            .background(Color.actionColour)
+                            .clipShape(Circle())
+                            .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+                            .padding(.top, 10)
+                            .padding(.leading, 10)
                     }
-                }) {
-                    Image(systemName: "dot.radiowaves.up.forward") // what the scan button looks like
-                        .foregroundColor(.white)
-                        .padding(12)
-                        .background(Color.actionColour)
-                        .clipShape(Circle())
-                        .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
-                        .padding(.top, 10)
-                        .padding(.trailing, 10)
+                    
+                    
+                    // Scan Room Button
+                    Button(action: {
+                        scanner.beginScanning { message in
+                            self.alertMessage = message
+                            self.showAlert = true
+                        }
+                    }) {
+                        Image(systemName: "dot.radiowaves.up.forward") // what the scan button looks like
+                            .foregroundColor(.white)
+                            .padding(12)
+                            .background(Color.actionColour)
+                            .clipShape(Circle())
+                            .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+                            .padding(.top, 10)
+                            .padding(.trailing, 10)
+                    }
+                }
+                if showLeaderboard{
+                    Color.black.opacity(0.5)
+                        .ignoresSafeArea()
+                        .onTapGesture{
+                            showLeaderboard = false
+                        }
+                    LeaderBoard(showLeaderboard: $showLeaderboard)
                 }
             }
             .background(Color.background.ignoresSafeArea())

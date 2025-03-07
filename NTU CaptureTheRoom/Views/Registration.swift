@@ -142,9 +142,6 @@ struct Registration: View{
                 completion(error)
             } else {
                 print("Document successfully written!")
-                if user.displayName != nil{
-                    UserLocal.currentUser = UserLocal(username: user.displayName!)
-                }
                 completion(nil)
             }
             
@@ -157,7 +154,7 @@ struct Registration: View{
     func RegisterX(){
         twitterProvider.getCredentialWith(nil){ twitterCredential, error in
             if error != nil{
-                print(error?.localizedDescription)
+                print(error?.localizedDescription ?? "error")
             }
             if twitterCredential != nil{
                 Auth.auth().signIn(with: twitterCredential!){ authResult, error in
@@ -194,7 +191,7 @@ struct Registration: View{
                                 isFirstLogin = true
                                 saveUserDateToFirestore(user: user, loginType: "Twitter"){ error2 in
                                     if let error2 = error{
-                                        print(error?.localizedDescription)
+                                        print(error2.localizedDescription)
                                     }
                                 }
                                 getStoredUserInfo{ result in
@@ -220,7 +217,7 @@ struct Registration: View{
         print("Register with Github")
         gitProvider.getCredentialWith(nil) { gitCredential, error in
             if error != nil {
-                print(error?.localizedDescription)
+                print(error?.localizedDescription ?? "error")
             }
             if gitCredential != nil {
                 Auth.auth().signIn(with: gitCredential!) { authResult, error in
@@ -240,7 +237,7 @@ struct Registration: View{
                     
                     guard let oauthCredential = authResult?.credential as? OAuthCredential else { return }
                     guard let user = authResult?.user else {return}
-                    let accessToken = oauthCredential.accessToken
+                    _ = oauthCredential.accessToken
                     checkIfUserDocExists(uid: user.uid){ result in
                         switch result{
                         case .success(let exists):
@@ -260,7 +257,7 @@ struct Registration: View{
                                 isFirstLogin = true
                                 saveUserDateToFirestore(user: user, loginType: "GitHub"){ error2 in
                                     if let error2 = error{
-                                        print(error?.localizedDescription)
+                                        print(error2.localizedDescription)
                                     }
                                     isGitLogin = true
                                     UserLocal.currentUser?.user = user
@@ -293,7 +290,7 @@ struct Registration: View{
     func RegisterGoogle(){
         guard let clientId = FirebaseApp.app()?.options.clientID else {return}
         
-        let config = GIDConfiguration(clientID: clientId)
+        _ = GIDConfiguration(clientID: clientId)
         
         GIDSignIn.sharedInstance.signIn(withPresenting: ApplicationUtility.rootViewController){
             signResult, err in
@@ -343,7 +340,7 @@ struct Registration: View{
                             isFirstLogin = true
                             saveUserDateToFirestore(user: user, loginType: "Google"){ error2 in
                                 if let error2 = error{
-                                    print(error?.localizedDescription)
+                                    print(error2.localizedDescription)
                                 }
                             }
                             getStoredUserInfo{ result in
@@ -382,7 +379,7 @@ struct Registration: View{
         else{
             
             Auth.auth().createUser(withEmail: email, password: password) { result, error in
-                print(error?.localizedDescription)
+                print(error?.localizedDescription ?? "error")
                 if let error = error as? NSError {
                     // Check error code instead of localizedDescription
                     switch AuthErrorCode(rawValue: error.code) {
@@ -402,7 +399,7 @@ struct Registration: View{
                     isFirstLogin = true
                     saveUserDateToFirestore(user: user, loginType: "Email"){ error2 in
                         if let error2 = error{
-                            print(error?.localizedDescription)
+                            print(error2.localizedDescription)
                         }
                     }
                     getStoredUserInfo{ result in
