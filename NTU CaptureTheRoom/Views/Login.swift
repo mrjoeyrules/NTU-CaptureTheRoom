@@ -123,6 +123,8 @@ struct Login: View {
     func saveUserDateToFirestore(user: User,loginType: String , completion: @escaping (Error?) -> Void){
         let db = Firestore.firestore()
         
+        // get fcm token from userdefaults
+        //let fcmToken = UserDefaults.standard.string(forKey: "fcmToken") ?? ""
         
         let userData: [String: Any] = [
             "uid": user.uid,
@@ -132,13 +134,19 @@ struct Login: View {
             "level": UserLocal.currentUser?.level ?? 1,
             "xp": UserLocal.currentUser?.xp ?? 0,
             "username": "unselected",
+            "fcmToken": "", // create the space in fs for later use
             "team": "unselected",
             "setupstatus": "in-progress",
             "roomscapped": UserLocal.currentUser?.roomsCapped ?? 0,
             "totalsteps": UserLocal.currentUser?.totalSteps ?? 0,
             "totalxp": UserLocal.currentUser?.totalXp ?? 0
             ]
-        db.collection("users").document(user.uid).setData(userData){ error in
+        /*
+        if !fcmToken.isEmpty{
+            userData["fcmToken"] = fcmToken
+        }
+         */
+        db.collection("users").document(user.uid).setData(userData, merge: true){ error in
             if let error = error {
                 print("Error writing document: \(error)")
                 completion(error)
@@ -150,6 +158,8 @@ struct Login: View {
         }
         
     }
+    
+    
     
     func loginWithX(){
         twitterProvider.getCredentialWith(nil){ twitterCredential, error in
@@ -237,7 +247,7 @@ struct Login: View {
                     
                     guard let oauthCredential = authResult?.credential as? OAuthCredential else { return }
                     guard let user = authResult?.user else {return}
-                    let accessToken = oauthCredential.accessToken
+                    _ = oauthCredential.accessToken
                     checkIfUserDocExists(uid: user.uid){ result in
                         switch result{
                         case .success(let exists):
@@ -421,7 +431,7 @@ struct Login: View {
                 VStack{
                         Image(logo) // ntu logo at top
                             .resizable()
-                            .frame(width: 100 , height: 100)
+                            .frame(width: 150 , height: 150)
                             .padding()
                         ZStack{
                             Text("Welcome to the NTU Capture The Room App \n Please login to use the app")

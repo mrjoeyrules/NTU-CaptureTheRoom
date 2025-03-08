@@ -144,7 +144,7 @@ class NFCScanner: NSObject, NFCNDEFReaderSessionDelegate {
                     print("Room successfully updated")
                     
                     let maxXp: CGFloat = 200 // max xp per level is 200
-                    var currentXp = UserLocal.currentUser?.xp ?? 0
+                    let currentXp = UserLocal.currentUser?.xp ?? 0
                     let storedXp = UserLocal.currentUser?.xpStored ?? 0
                     let totalXp = currentXp + storedXp
                     

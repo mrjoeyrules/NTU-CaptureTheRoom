@@ -112,7 +112,7 @@ struct Registration: View {
 
     func saveUserDateToFirestore(user: User, loginType: String, completion: @escaping (Error?) -> Void) {
         let db = Firestore.firestore()
-
+        //let fcmToken = UserDefaults.standard.string(forKey: "fcmToken") ?? ""
         let userData: [String: Any] = [
             "uid": user.uid,
             "email": user.email ?? "",
@@ -127,7 +127,12 @@ struct Registration: View {
             "totalsteps": UserLocal.currentUser?.totalSteps ?? 0,
             "totalxp": UserLocal.currentUser?.totalXp ?? 0,
         ]
-        db.collection("users").document(user.uid).setData(userData) { error in
+        /*
+        if !fcmToken.isEmpty{
+            userData["fcmToken"] = fcmToken
+        }
+         */
+        db.collection("users").document(user.uid).setData(userData, merge: true){ error in
             if let error = error {
                 print("Error writing document: \(error)")
                 completion(error)
@@ -135,6 +140,7 @@ struct Registration: View {
                 print("Document successfully written!")
                 completion(nil)
             }
+            
         }
     }
 
@@ -413,7 +419,7 @@ struct Registration: View {
                 VStack {
                     Image(logo) // App logo
                         .resizable()
-                        .frame(width: 100, height: 100)
+                        .frame(width: 150, height: 150)
                         .padding()
                     ZStack {
                         Text("Welcome to the NTU Capture the room App \nPlease register to use the app")

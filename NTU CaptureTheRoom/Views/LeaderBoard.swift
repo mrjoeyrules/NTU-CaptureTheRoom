@@ -4,20 +4,7 @@ import FirebaseFirestore
 struct LeaderBoard: View {
     @Binding var showLeaderboard: Bool
     @State private var teams: [(name: String, score: Int)] = []
-    
-    
-    func getTrophyColour(for index: Int) -> Color{
-        switch index {
-        case 0:
-            return .yellow
-        case 1:
-            return .gray
-        case 2:
-            return .brown
-        default:
-            return .white
-        }
-    }
+    @ObservedObject private var colourSelector = ColourSelector()
     
     
     
@@ -85,7 +72,7 @@ struct LeaderBoard: View {
                         HStack {
                             Text(Image(systemName: "trophy.fill"))
                                 .font(.headline)
-                                .foregroundStyle(getTrophyColour(for: index))
+                                .foregroundStyle(colourSelector.getTrophyColourLeaderboard(for: index))
                             
                             Text(teams[index].name)
                                 .font(.headline)
@@ -106,7 +93,8 @@ struct LeaderBoard: View {
                         .cornerRadius(10)
                         .overlay(
                             RoundedRectangle(cornerRadius: 10)
-                                .stroke(Color.sstColour, lineWidth: 4)
+                                .stroke(teams.indices.contains(index) ? colourSelector.getLeaderboardOutline(team: teams[index].name) : Color.clear, lineWidth: 4)
+
                         )
                     }
                 }
@@ -132,7 +120,8 @@ struct LeaderBoard: View {
             .frame(width: 350, height: 400)
             .background(Color.background)
             .cornerRadius(15)
-            .shadow(color: Color.sstColour, radius: 10)
+            .shadow(color: teams.first.map { colourSelector.getShadowColourLeaderboard(team: $0.name) } ?? Color.clear, radius: 10)
+
         }
         .onAppear {
             fetchLeaderBoardData()

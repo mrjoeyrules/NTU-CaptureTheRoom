@@ -4,6 +4,9 @@
 //
 //  Created by Joseph Cuesta Acevedo on 13/01/2025.
 //
+
+
+// User info class to be used throughout program
 import FirebaseAuth
 import Foundation
 class UserLocal{

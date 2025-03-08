@@ -73,7 +73,7 @@ struct FirstUserInfo: View{
             if isAvailable {
                 // Proceed to update Firestore with the username
                 updateUsername(username: username) { error in
-                    if let error = error {
+                    if error != nil {
                         self.activeAlert = .first
                         self.showAlert = true
                     } else {

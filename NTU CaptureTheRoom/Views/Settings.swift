@@ -13,17 +13,17 @@ struct Settings: View {
 
     func signOut() {
         do{
-            try Auth.auth().signOut()
+            try Auth.auth().signOut() // signs the user out within the firebase auth
             
-            UserLocal.currentUser = nil
+            UserLocal.currentUser = nil // clear current user
             
-            UserDefaults.standard.removePersistentDomain(forName: Bundle.main.bundleIdentifier!)
+            UserDefaults.standard.removePersistentDomain(forName: Bundle.main.bundleIdentifier!) //clears all userdefaults values in the app under my bundle indentifier 
             UserDefaults.standard.synchronize()
             
             DispatchQueue.main.async{
                 if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                    let window = scene.windows.first{
-                    window.rootViewController = UIHostingController(rootView: Registration())
+                    window.rootViewController = UIHostingController(rootView: Registration()) // send user back to registration
                     window.makeKeyAndVisible()
                 }
             }
@@ -36,12 +36,12 @@ struct Settings: View {
         NavigationView {
             VStack {
                 // Title
-                Text("Settings Page")
+                Text("Settings")
                     .font(.title)
                     .fontWeight(.bold)
                     .padding(.top, 20)
 
-                // 🔹 MAP SETTINGS SECTION
+                // map settings
                 VStack(alignment: .leading, spacing: 10) {
                     Text("MAP THEME")
                         .font(.subheadline)
