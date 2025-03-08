@@ -39,46 +39,55 @@ struct Nearby: View {
         }
         let db = Firestore.firestore()
         
-        db.collection("Rooms").addSnapshotListener { snapshot, error in
-            if let error = error {
-                print("Error getting room updates: \(error.localizedDescription)")
-                return
-            }
-            
-            guard let documents = snapshot?.documents else { return }
-            
-            var locations: [RoomLocation2] = []
-            
-            for doc in documents {
-                let data = doc.data()
+        guard Auth.auth().currentUser != nil else { // ensure user is authed, wasnt here before.
+            print("no user authed firestore access blocked")
+            return
+        }
+        
+        DispatchQueue.global(qos: .background).async{ // fetch data in background
+        
+            db.collection("Rooms").getDocuments { snapshot, error in
+                if let error = error {
+                    print("Error getting room updates: \(error.localizedDescription)")
+                    return
+                }
                 
-                if let name = data["roomname"] as? String,
-                   let latitude = data["roomlat"] as? Double,
-                   let mazemaplink = data["mazemaplink"] as? String,
-                   let longitude = data["roomlon"] as? Double {
-                    let teamOwner = data["teamowner"] as? String ?? "unclaimed"
-                    let roomLocation = CLLocation(latitude: latitude, longitude: longitude)
-                    let distance = userLocation.distance(from: roomLocation) // dividing from 1000 makes it availabe in kilometers but becuase of how close everything is im leaving it in meters.
+                guard let documents = snapshot?.documents else { return }
+                
+                var locations: [RoomLocation2] = []
+                
+                for doc in documents {
+                    let data = doc.data()
                     
-                    var room = RoomLocation2(
-                        id: doc.documentID,
-                        name: name,
-                        latitude: latitude,
-                        longitude: longitude,
-                        teamOwner: teamOwner,
-                        distance: distance,
-                        mazemaplink: mazemaplink
-                    )
-                    if room.teamOwner == ""{
-                        room.teamOwner = "None"
+                    if let name = data["roomname"] as? String,
+                       let latitude = data["roomlat"] as? Double,
+                       let mazemaplink = data["mazemaplink"] as? String,
+                       let longitude = data["roomlon"] as? Double {
+                        let teamOwner = data["teamowner"] as? String ?? "unclaimed"
+                        let roomLocation = CLLocation(latitude: latitude, longitude: longitude)
+                        let distance = userLocation.distance(from: roomLocation) // dividing from 1000 makes it availabe in kilometers but becuase of how close everything is im leaving it in meters.
+                        
+                        var room = RoomLocation2(
+                            id: doc.documentID,
+                            name: name,
+                            latitude: latitude,
+                            longitude: longitude,
+                            teamOwner: teamOwner,
+                            distance: distance,
+                            mazemaplink: mazemaplink
+                        )
+                        if room.teamOwner == ""{
+                            room.teamOwner = "None"
+                        }
+                        locations.append(room)
+                    } else {
+                        print("Skipping invalid document: \(doc.documentID)")
                     }
-                    locations.append(room)
-                } else {
-                    print("Skipping invalid document: \(doc.documentID)")
+                }
+                DispatchQueue.main.async {
+                    self.roomLocations = locations.sorted { $0.distance < $1.distance } // sorts list of rooms based on distnace to user, closets ones first.
                 }
             }
-            
-            roomLocations = locations.sorted { $0.distance < $1.distance } // sorts list of rooms based on distnace to user, closets ones first.
         }
     }
     
@@ -100,17 +109,19 @@ struct Nearby: View {
                                     .font(.subheadline)
                             }
                             Spacer()
-                            
-                            Button(action: {
-                                openLink(URL(string: room.mazemaplink)!) // opens mazmaplink from fs in default browser
-                            }) {
-                                Text("Directions")
-                                    .padding()
-                                    .foregroundColor(.white)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                            .fill(Color.actionColour)
-                                    )
+                            if let url = URL(string: room.mazemaplink){
+                                
+                                Button(action: {
+                                    openLink(url) // opens mazmaplink from fs in default browser
+                                }) {
+                                    Text("Directions")
+                                        .padding()
+                                        .foregroundColor(.white)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                                .fill(Color.actionColour)
+                                        )
+                                }
                             }
                         }
                         .padding()

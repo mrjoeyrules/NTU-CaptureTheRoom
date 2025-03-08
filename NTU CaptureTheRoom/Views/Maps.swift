@@ -16,6 +16,7 @@ import SwiftUI
 
 struct Maps: View {
     @State private var userLocation: CLLocationCoordinate2D? = nil
+    
     @State private var scanner = NFCScanner()
     @StateObject private var stepManager = StepTrackerManager()
     @State private var showAlert = false
@@ -25,79 +26,87 @@ struct Maps: View {
     @State private var hasSetInitialCamera = false
     @State private var showLeaderboard = false
     var body: some View {
-        NavigationStack {
-            ZStack(alignment: .topTrailing) {
-                // Map Section
-                GoogleMapView(userLocation: $userLocation, roomLocations: $roomLocations, hasSetInitialCamera: $hasSetInitialCamera) // pass all neeeded parameters for maps set up
-                    .edgesIgnoringSafeArea([.top, .leading, .trailing])
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color.background)
-                
-                
-                
-                HStack{
-                    // leaderboard button
-                    Button(action: {
-                        showLeaderboard = true
-                    }) {
-                        Image(systemName: "chart.bar.fill")
-                            .foregroundStyle(.white)
-                            .padding(12)
-                            .background(Color.actionColour)
-                            .clipShape(Circle())
-                            .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
-                            .padding(.top, 10)
+            NavigationStack {
+                ZStack {
+                    // Map Section
+                    GoogleMapView(userLocation: $userLocation, roomLocations: $roomLocations, hasSetInitialCamera: $hasSetInitialCamera)
+                        .edgesIgnoringSafeArea([.top, .leading, .trailing])
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(Color.background)
+
+                    // Buttons in the top corners
+                    VStack {
+                        HStack {
+                            // Leaderboard Button (Top Left)
+                            Button(action: {
+                                showLeaderboard = true
+                            }) {
+                                Image(systemName: "chart.bar.fill")
+                                    .foregroundColor(.white)
+                                    .padding(12)
+                                    .background(Color.actionColour)
+                                    .clipShape(Circle())
+                                    .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+                            }
                             .padding(.leading, 10)
-                    }
-                    
-                    
-                    // Scan Room Button
-                    Button(action: {
-                        scanner.beginScanning { message in
-                            self.alertMessage = message
-                            self.showAlert = true
-                        }
-                    }) {
-                        Image(systemName: "dot.radiowaves.up.forward") // what the scan button looks like
-                            .foregroundColor(.white)
-                            .padding(12)
-                            .background(Color.actionColour)
-                            .clipShape(Circle())
-                            .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
-                            .padding(.top, 10)
+
+                            Spacer()
+
+                            // Scan Room Button (Top Right)
+                            Button(action: {
+                                scanner.beginScanning { message in
+                                    self.alertMessage = message
+                                    self.showAlert = true
+                                }
+                            }) {
+                                Image(systemName: "dot.radiowaves.up.forward")
+                                    .foregroundColor(.white)
+                                    .padding(12)
+                                    .background(Color.actionColour)
+                                    .clipShape(Circle())
+                                    .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+                            }
                             .padding(.trailing, 10)
-                    }
-                }
-                if showLeaderboard{
-                    Color.black.opacity(0.5)
-                        .ignoresSafeArea()
-                        .onTapGesture{
-                            showLeaderboard = false
                         }
-                    LeaderBoard(showLeaderboard: $showLeaderboard)
-                }
-            }
-            .background(Color.background.ignoresSafeArea())
-            .alert(isPresented: $showAlert) {
-                Alert(title: Text("Room Capture"), message: Text(alertMessage), dismissButton: .default(Text("OK"))) // alert info
-            }
-            .onAppear {
-                startListeningForRoomUpdates()
-                stepManager.requestPermission { granted in
-                    if granted {
-                        stepManager.startTrackingSteps()
-                    }else{
-                        alertMessage = "User Denied Motion tracking please enable in settings"
-                        showAlert = true
+                        .padding(.top, 10)
+                        .frame(maxWidth: .infinity)
+                        
+                        Spacer() // Pushes everything else down
+                    }
+
+                    // Leaderboard Overlay
+                    if showLeaderboard {
+                        Color.black.opacity(0.5)
+                            .ignoresSafeArea()
+                            .onTapGesture {
+                                showLeaderboard = false
+                            }
+                        LeaderBoard(showLeaderboard: $showLeaderboard)
+                            .transition(.scale)
+                            .zIndex(1)
                     }
                 }
+                .background(Color.background.ignoresSafeArea())
+                .alert(isPresented: $showAlert) {
+                    Alert(title: Text("Room Capture"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
+                }
+                .onAppear {
+                    startListeningForRoomUpdates()
+                    stepManager.requestPermission { granted in
+                        if granted {
+                            stepManager.startTrackingSteps()
+                        } else {
+                            alertMessage = "User Denied Motion tracking, please enable in settings"
+                            showAlert = true
+                        }
+                    }
+                }
+                .onDisappear {
+                    stepManager.stopTracking()
+                }
+                .navigationBarBackButtonHidden(true)
             }
-            .onDisappear{
-                stepManager.stopTracking()
-            }
-            .navigationBarBackButtonHidden(true)
         }
-    }
 
     func startListeningForRoomUpdates() { // gets all rooms from fs and adds them to a array of locations for use with markers
         let db = Firestore.firestore()

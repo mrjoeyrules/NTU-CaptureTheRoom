@@ -30,7 +30,11 @@ struct GoogleMapView: UIViewRepresentable {
     @Binding var userLocation: CLLocationCoordinate2D?
     @Binding var roomLocations: [RoomLocation]
     @Binding var hasSetInitialCamera: Bool
+    @Environment(\.colorScheme) var colorScheme
+    @ObservedObject var settings = MapSettings()
 
+    let mapView = GMSMapView()
+    
     func resizeImage(image: UIImage, targetSize: CGSize) -> UIImage {
         let size = image.size // gets the passed images size
 
@@ -98,8 +102,41 @@ struct GoogleMapView: UIViewRepresentable {
         context.coordinator.mapView = mapView
         return mapView
     }
+    
+    func applyMapStyle(to mapView: GMSMapView){
+        let themeToUse = settings.selectedTheme == .systemDefault
+        ? (colorScheme == .dark ? MapTheme.dark : MapTheme.light)
+        : settings.selectedTheme
+        var styleName: String?
+        
+        switch themeToUse {
+        case .dark:
+            styleName = "darkmode"
+        case .light:
+            styleName = "light"
+        case .night:
+            styleName = "nightmode"
+        case .aubergine:
+            styleName = "aubergine"
+        case .systemDefault:
+            break
+        }
+        
+        if let styleName = styleName, let styleURL = Bundle.main.url(forResource: styleName, withExtension: "json"){
+            do{
+                mapView.mapType = .normal
+                mapView.mapStyle = try GMSMapStyle(contentsOfFileURL: styleURL)
+            } catch{
+                print("Error loading map style: \(error)")
+            }
+        }else{
+            print("map style file not found")
+        }
+    }
+        
 
     func updateUIView(_ uiView: GMSMapView, context: Context) {
+        applyMapStyle(to: uiView)
         if let userLocation = userLocation, !hasSetInitialCamera {
             let cameraUpdate = GMSCameraUpdate.setTarget(userLocation, zoom: 17.5)
             uiView.moveCamera(cameraUpdate)

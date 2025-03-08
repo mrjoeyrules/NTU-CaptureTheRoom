@@ -12,33 +12,58 @@ import FirebaseFirestore
 
 struct Profile: View {
 
+    
+    
+    
     var body: some View {
         VStack(spacing: 10){
             
-            HStack {
-                Spacer()
-                NavigationLink(destination: Settings()) {
-                    Image(systemName: "gearshape.fill") // Settings Icon
-                        .foregroundColor(.white)
-                        .padding(12)
-                        .background(Color.actionColour)
-                        .clipShape(Circle())
-                        .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
-                }
-                .padding(.trailing, 20)
-                .padding(.top, 5)
-            }
-            .frame(maxWidth: .infinity, alignment: .topTrailing)
-
-            // Profile Title and Username
-            VStack(spacing: 2) {
+            
+            ZStack {
+                // Centered Profile Text
                 Text("Profile")
                     .font(.title)
                     .fontWeight(.bold)
+                    .frame(maxWidth: .infinity, alignment: .center) // Forces full-width and centers text
 
-                Text(UserLocal.currentUser?.username ?? "Username not found")
-                    .font(.title2)
-                    .fontWeight(.medium)
+                // Settings Button on the Right
+                HStack {
+                    Spacer()
+                    NavigationLink(destination: Settings()) {
+                        Image(systemName: "gearshape.fill") // Settings Icon
+                            .foregroundColor(.white)
+                            .padding(12)
+                            .background(Color.actionColour)
+                            .clipShape(Circle())
+                            .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .trailing) // Pushes button to the right
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 5)
+
+            // Profile info
+            VStack(spacing: 2) {
+                
+                
+                HStack{
+                    Text("Username: ")
+                        .font(.title2)
+                    
+                    Text(UserLocal.currentUser?.username ?? "Username not found")
+                        .font(.title2)
+                        .fontWeight(.medium)
+                }
+                HStack{
+                    Text("Team: ")
+                        .font(.title2)
+                    Text(UserLocal.currentUser?.team ?? "Team Not Found")
+                        .font(.title2)
+                        .fontWeight(.medium)
+                }
+
+                
             }
             .padding(.top, 10)
             

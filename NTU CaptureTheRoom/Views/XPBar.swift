@@ -10,6 +10,7 @@ import SwiftUI
 struct XpBar: View {
     @State private var currentXp = UserLocal.currentUser?.xp ?? 0
     @State private var maxXp: CGFloat = 200
+    @ObservedObject private var colourSelector = ColourSelector()
 
     var body: some View {
         VStack(spacing: 20) {
@@ -19,6 +20,7 @@ struct XpBar: View {
                 RoundedRectangle(cornerRadius: 10)
                     .frame(width: 300, height: 20) // set frame for xp bar
                     .foregroundColor(Color.gray.opacity(0.3))
+                    .shadow(color: colourSelector.getShadowColour(team: UserLocal.currentUser?.team ?? "n/a"), radius: 3)
 
                 RoundedRectangle(cornerRadius: 10)
                     .frame(width: (currentXp / maxXp) * 300, height: 20) // this scaled the green filled bar with the current xp compared to max xp

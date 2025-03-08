@@ -12,6 +12,7 @@ struct UserStats: View {
     @State private var dateJoined: String = ""
     @State private var totalXp: CGFloat = 0
     @State private var roomsCapped: Int = 0
+    @ObservedObject private var colourSelector = ColourSelector()
     
     
     
@@ -21,12 +22,12 @@ struct UserStats: View {
             StatRow(icon: "figure.walk", title: "Total Steps", value: "\(totalSteps) steps")
             StatRow(icon: "clock", title: "Date Joined", value: dateJoined)
             StatRow(icon: "medal.star", title: "Total XP Gained", value: "\(Int(totalXp)) xp")
-            StatRow(icon: "house.and.flag", title: "Total Rooms Capped", value: "\(roomsCapped)")
+            StatRow(icon: "house.and.flag", title: "Total Rooms Captured", value: "\(roomsCapped)")
         }
         .padding()
         .background(Color.background)
         .cornerRadius(15)
-        .shadow(radius: 5)
+        .shadow(color: colourSelector.getShadowColour(team: UserLocal.currentUser?.team ?? "n/a"), radius: 5)
         .padding(.horizontal, 20)
         .onAppear{
             getDataFromUserLocal()
@@ -43,6 +44,7 @@ struct UserStats: View {
 }
 
 struct StatRow: View { // custom views to display all the data needed, can be reused easily.
+    @ObservedObject private var colourSelector = ColourSelector()
     let icon: String
     let title: String
     let value: String // pass through requred data
@@ -50,7 +52,7 @@ struct StatRow: View { // custom views to display all the data needed, can be re
     var body: some View { // output whatever is needed
         HStack{
             Image(systemName: icon)
-                .foregroundColor(Color.actionColour) // sf symbol icon
+                .foregroundColor(colourSelector.getShadowColour(team: UserLocal.currentUser?.team ?? "n/a")) // sf symbol icon
                 .font(.title2)
                 .frame(width: 30)
             

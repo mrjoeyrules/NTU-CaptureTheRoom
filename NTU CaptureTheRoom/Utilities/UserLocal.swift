@@ -9,6 +9,7 @@ import Foundation
 class UserLocal{
     static var currentUser: UserLocal?
     
+    
     private var _user: FirebaseAuth.User? = nil
     var user: FirebaseAuth.User?{
         get{
