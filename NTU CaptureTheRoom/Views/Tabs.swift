@@ -9,7 +9,7 @@ import SwiftUI
 import FirebaseAuth
 import FirebaseFirestore
 
-struct Tabs: View {
+struct Tabs: View { // different pages available.
     @State var selectedTab: Tab = .maps
     enum Tab: Hashable {
         case profile
@@ -76,9 +76,9 @@ struct Tabs: View {
         ZStack {
             Color.background
                 .ignoresSafeArea()
-            TabView(selection: $selectedTab) {
+            TabView(selection: $selectedTab) { // tabs view  is always passed with a selected tab from the enum
                 NavigationStack {
-                    Profile()
+                    Profile() // profile page
                 }
                 .tabItem {
                     Label("Profile", systemImage: "person")
@@ -86,7 +86,7 @@ struct Tabs: View {
                 .tag(Tab.profile)
 
                 NavigationStack {
-                    Maps()
+                    Maps() // maps page
                 }
                 .tabItem {
                     Label("Map", systemImage: "map")
@@ -94,23 +94,23 @@ struct Tabs: View {
                 .tag(Tab.maps)
 
                 NavigationStack {
-                    Nearby()
+                    Nearby() // nearby page
                 }
                 .tabItem {
-                    Label("Nearby", systemImage: "mappin")
+                    Label("Nearby", systemImage: "mappin") // label and image
                 }
                 .tag(Tab.nearby)
             }
         }
-        .navigationBarBackButtonHidden(true)
+        .navigationBarBackButtonHidden(true) // remove nav bar back button
         .tint(Color.actionColour)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background {
             Color.background
-                .ignoresSafeArea()
+                .ignoresSafeArea() // set background
         }
         .onAppear{
-            UITabBar.appearance().unselectedItemTintColor = UIColor.lightGray
+            UITabBar.appearance().unselectedItemTintColor = UIColor.lightGray // change systemimage colour for unselected items
             
             getStoredUserInfo { result in
                 switch result {

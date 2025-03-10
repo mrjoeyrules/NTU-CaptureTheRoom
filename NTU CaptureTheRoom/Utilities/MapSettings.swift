@@ -10,12 +10,12 @@ import SwiftUI
 class MapSettings: ObservableObject{
     @Published var selectedTheme: MapTheme{
         didSet{
-            UserDefaults.standard.set(selectedTheme.rawValue, forKey: "selectedMapTheme")
+            UserDefaults.standard.set(selectedTheme.rawValue, forKey: "selectedMapTheme") // store selected theme raw value in userdefaults under key selectedMapTheme
         }
     }
     
     init(){
-        let savedTheme = UserDefaults.standard.string(forKey: "selectedMapTheme") ?? MapTheme.systemDefault.rawValue
+        let savedTheme = UserDefaults.standard.string(forKey: "selectedMapTheme") ?? MapTheme.systemDefault.rawValue // get saved theme from userdefaults if nothing there used systemdefault which is light or dark. 
         self.selectedTheme = MapTheme(rawValue: savedTheme) ?? .systemDefault
     }
 }

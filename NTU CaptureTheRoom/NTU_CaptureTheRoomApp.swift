@@ -112,6 +112,8 @@ class AppDelegate : NSObject, UIApplicationDelegate, UNUserNotificationCenterDel
             saveFCMToFS(token: token)
         }
     }
+     
+     
     
     func saveFCMToFS(token: String){
         guard let user = Auth.auth().currentUser else {return}

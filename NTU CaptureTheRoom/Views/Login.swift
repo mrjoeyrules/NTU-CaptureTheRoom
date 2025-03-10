@@ -34,13 +34,16 @@ struct Login: View {
     @State var isEmailLogin: Bool = false
     let logo = "NTUShieldLogo" // name of logo picture
     
-    func showAlert(for alert: ActiveAlert2) {
+    func showAlert(for alert: ActiveAlert2) { // show alert function
         self.activeAlert = alert
         self.showAlert = false // Ensure refresh
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             self.showAlert = true
         }
     }
+    
+    
+    //all code is the same as registration except login email function.
     
     func getStoredUserInfo(completion: @escaping (Result<Void, Error>) -> Void) {
         guard let uid = Auth.auth().currentUser?.uid else {
@@ -376,16 +379,17 @@ struct Login: View {
         
     func loginEmail(){
         self.showAlert = false
-        if email.isEmpty || password.isEmpty{
+        if email.isEmpty || password.isEmpty{ // if either field empty throw alert
             self.activeAlert = .first
             self.showAlert.toggle()
             return
         }
-        Auth.auth().signIn(withEmail: email, password: password){ (result, error) in
+        Auth.auth().signIn(withEmail: email, password: password){ (result, error) in // sign in email and password
             print(error?.localizedDescription ?? "error")
             if let error = error as? NSError {
                 print(error.code)
                 // Check error code instead of localizedDescription
+                // different fb errors on login
                 switch AuthErrorCode(rawValue: error.code) {
                 case .accountExistsWithDifferentCredential:
                     showAlert(for: .fourth)
@@ -404,10 +408,10 @@ struct Login: View {
                 }
                 return
             }
-            print("success")
+            print("success") // if FB auth has no error get the user from the auth result user
             guard let user = result?.user else { return } // get user to get uid for later use
             UserLocal.currentUser?.user = user
-            getStoredUserInfo{ result in
+            getStoredUserInfo{ result in // get stored user info from FS
                 switch result{
                 case.success:
                     print("User data stored successfully")

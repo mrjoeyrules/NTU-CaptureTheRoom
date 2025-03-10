@@ -10,7 +10,7 @@ enum MapTheme: String, CaseIterable {
     case light = "Light"
     case dark = "Dark"
     case night = "Night"
-    case aubergine = "Aubergine"
+    case aubergine = "Aubergine" // Names of JSON files in root
 }
 
 
