@@ -5,6 +5,7 @@
 //  Created by Joseph Cuesta Acevedo on 20/01/2025.
 //
 
+// this is where user sets username
 import Foundation
 import FirebaseCore
 import FirebaseAuth
@@ -23,62 +24,64 @@ struct FirstUserInfo: View{
     @State var username: String = ""
     @State var usernameAccepted: Bool = false
 
+    // checks is username is available
     func isUsernameAvailable(username: String, completion: @escaping (Bool, Error?) -> Void){
-        let db = Firestore.firestore()
+        let db = Firestore.firestore() // get FS
+        // check users collection where the username field is equal to users entered username and get the doc
         db.collection("users").whereField("username", isEqualTo: username).getDocuments { snapshot, error in
             if let error = error{
-                completion(false, error)
+                completion(false, error) // if error return false and the error for the alert
                 return
             }
-            if let snapshot = snapshot, snapshot.documents.isEmpty{
+            if let snapshot = snapshot, snapshot.documents.isEmpty{ // if document is empty meaning couldnt find doc then return that username is available
                 completion(true, nil)
-            }else{
+            }else{ // username not available
                 completion(false, nil)
             }
         }
     }
     
-    func updateUsername(username: String, completion: @escaping (Error?) -> Void){
-        guard let uid = Auth.auth().currentUser?.uid else {
+    func updateUsername(username: String, completion: @escaping (Error?) -> Void){ // updates the username in FS
+        guard let uid = Auth.auth().currentUser?.uid else { // get user auth
             print("No authenticated user.")
             completion(NSError(domain: "AuthError", code: 401, userInfo: [NSLocalizedDescriptionKey: "User not authenticated"]))
             return
         }
         let db = Firestore.firestore()
-        db.collection("users").document(uid).updateData([
+        db.collection("users").document(uid).updateData([ // users collection with doc name of users uid. update the data in the username field with the parsed username
             "username": username
         ]) { error in
-            if let error = error{
+            if let error = error{ // if error print error
                 print(error.localizedDescription)
-                completion(error)
+                completion(error) // return error
             }else{
-                UserLocal.currentUser?.username = username
+                UserLocal.currentUser?.username = username // set current user username in userlocal class
                 completion(nil)
             }
         }
     }
     
-    func SubmitUsername(){
-        guard !username.isEmpty else {
+    func SubmitUsername(){ // this runs when user presses button to submit username
+        guard !username.isEmpty else { // if field is empty show alert third which is username must not be empty
             self.activeAlert = .third
             self.showAlert = true
             return
         }
-        isUsernameAvailable(username: username) { isAvailable, error in
+        isUsernameAvailable(username: username) { isAvailable, error in // checks if username is available first
             if let error = error {
                 print("Failed to check username availability: \(error.localizedDescription)")
                 return
             }
             
-            if isAvailable {
+            if isAvailable { // if available
                 // Proceed to update Firestore with the username
-                updateUsername(username: username) { error in
-                    if error != nil {
+                updateUsername(username: username) { error in // update username
+                    if error != nil { // if an error
                         self.activeAlert = .first
                         self.showAlert = true
                     } else {
                         // if all good set alert to success
-                        usernameAccepted = true
+                        usernameAccepted = true // set username accepted flag to true
                         self.activeAlert = .second
                         self.showAlert = true
                     }
@@ -94,7 +97,7 @@ struct FirstUserInfo: View{
     var body: some View{
         NavigationStack{
             if(usernameAccepted){
-                TeamSelection()
+                TeamSelection() // is usernameAccepted flag is true go to team selection instead of this page
             }else{
                 VStack{
                     ZStack{
@@ -143,7 +146,7 @@ struct FirstUserInfo: View{
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background{
-                    Color.background
+                    Color.background // sets background to background colour
                         .ignoresSafeArea()
                 }
             }

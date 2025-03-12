@@ -16,6 +16,8 @@ import SwiftUI
 
 // room location setup
 
+
+// struct to store info about the rooms for marker use
 struct RoomLocation: Identifiable {
     var id: String
     var name: String
@@ -27,13 +29,13 @@ struct RoomLocation: Identifiable {
 // google maps setup and tracking
 
 struct GoogleMapView: UIViewRepresentable {
-    @Binding var userLocation: CLLocationCoordinate2D?
-    @Binding var roomLocations: [RoomLocation]
+    @Binding var userLocation: CLLocationCoordinate2D? // the user current location
+    @Binding var roomLocations: [RoomLocation] // array of roomlocations
     @Binding var hasSetInitialCamera: Bool
     @Environment(\.colorScheme) var colorScheme
-    @ObservedObject var settings = MapSettings()
+    @ObservedObject var settings = MapSettings() // map settings
 
-    let mapView = GMSMapView()
+    let mapView = GMSMapView() // initialises the map view
     
     func resizeImage(image: UIImage, targetSize: CGSize) -> UIImage {
         let size = image.size // gets the passed images size
@@ -52,6 +54,7 @@ struct GoogleMapView: UIViewRepresentable {
         }
     }
 
+    // coordinator class to handle clllocationmanager delgate functions
     class Coordinator: NSObject, CLLocationManagerDelegate {
         var parent: GoogleMapView
         var locationManager: CLLocationManager?
@@ -63,20 +66,23 @@ struct GoogleMapView: UIViewRepresentable {
             setupLocationManager()
         }
 
-        private func setupLocationManager() {
+        private func setupLocationManager() { // SETUP the location manager
             locationManager = CLLocationManager()
             locationManager?.delegate = self
-            locationManager?.desiredAccuracy = kCLLocationAccuracyBest
-            locationManager?.requestWhenInUseAuthorization()
-            locationManager?.startUpdatingLocation()
+            locationManager?.desiredAccuracy = kCLLocationAccuracyBest // set accuracy to best level of accuract
+            locationManager?.requestWhenInUseAuthorization() // request location perms
+            locationManager?.startUpdatingLocation() // start updating location as in users current location
         }
 
-        func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        
+        
+        func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) { // this runs when the users location is updated
             guard let location = locations.last else { return }
             parent.userLocation = location.coordinate
 
             if let mapView = mapView, parent.userLocation != nil {
                 if !parent.hasSetInitialCamera {
+                    // moves camera to users location on first update. When the map is first loaded.
                     let cameraUpdate = GMSCameraUpdate.setTarget(location.coordinate, zoom: 17.5) // if userlocation is not nil then on display default to user location
                     mapView.moveCamera(cameraUpdate)
                     DispatchQueue.main.async {
@@ -86,7 +92,7 @@ struct GoogleMapView: UIViewRepresentable {
             }
         }
 
-        func locationManager(_ manager: CLLocationManager, didFailWithError error: any Error) {
+        func locationManager(_ manager: CLLocationManager, didFailWithError error: any Error) { // error if getting user location fails
             print("Location Manager error \(error.localizedDescription)")
         }
     }
@@ -96,20 +102,20 @@ struct GoogleMapView: UIViewRepresentable {
     }
 
     func makeUIView(context: Context) -> GMSMapView {
-        let mapView = GMSMapView(frame: .zero)
-        mapView.isMyLocationEnabled = true
-        mapView.settings.myLocationButton = true
-        context.coordinator.mapView = mapView
+        let mapView = GMSMapView(frame: .zero) // actually creates the map view
+        mapView.isMyLocationEnabled = true // enables user tracking on the map
+        mapView.settings.myLocationButton = true // adds reset location button
+        context.coordinator.mapView = mapView // links map view to coordinator
         return mapView
     }
     
-    func applyMapStyle(to mapView: GMSMapView){
-        let themeToUse = settings.selectedTheme == .systemDefault
-        ? (colorScheme == .dark ? MapTheme.dark : MapTheme.light)
+    func applyMapStyle(to mapView: GMSMapView){ // code for maptheme selection and display
+        let themeToUse = settings.selectedTheme == .systemDefault // gets theme from the settings class if equals systemdefault go between light and dark depending
+        ? (colorScheme == .dark ? MapTheme.dark : MapTheme.light) //
         : settings.selectedTheme
         var styleName: String?
         
-        switch themeToUse {
+        switch themeToUse { // different modes depending on the json names
         case .dark:
             styleName = "darkmode"
         case .light:
@@ -122,10 +128,10 @@ struct GoogleMapView: UIViewRepresentable {
             break
         }
         
-        if let styleName = styleName, let styleURL = Bundle.main.url(forResource: styleName, withExtension: "json"){
+        if let styleName = styleName, let styleURL = Bundle.main.url(forResource: styleName, withExtension: "json"){ // find json files in root using style name and .json
             do{
-                mapView.mapType = .normal
-                mapView.mapStyle = try GMSMapStyle(contentsOfFileURL: styleURL)
+                mapView.mapType = .normal // map type to normal
+                mapView.mapStyle = try GMSMapStyle(contentsOfFileURL: styleURL) // try set map style to contents of file passed through
             } catch{
                 print("Error loading map style: \(error)")
             }
@@ -135,17 +141,19 @@ struct GoogleMapView: UIViewRepresentable {
     }
         
 
-    func updateUIView(_ uiView: GMSMapView, context: Context) {
+    func updateUIView(_ uiView: GMSMapView, context: Context) { // updates map ui view
         applyMapStyle(to: uiView)
         if let userLocation = userLocation, !hasSetInitialCamera {
-            let cameraUpdate = GMSCameraUpdate.setTarget(userLocation, zoom: 17.5)
-            uiView.moveCamera(cameraUpdate)
+            let cameraUpdate = GMSCameraUpdate.setTarget(userLocation, zoom: 17.5) // sets camera to users location at 17.5 zoom
+            uiView.moveCamera(cameraUpdate) // move the camera with the users on the locaiton of camera update
             DispatchQueue.main.async {
                 self.hasSetInitialCamera = true
             }
         }
 
-        for room in roomLocations {
+        for room in roomLocations { // code from Google Maps Platform DOCS - https://developers.google.com/maps/documentation/ios-sdk/map-with-marker?_gl=1*morkne*_up*MQ..*_ga*NjQwODkxNjE5LjE3NDE3ODM4Njk.*_ga_NRWSTWS78N*MTc0MTc4Mzg2OC4xLjAuMTc0MTc4Mzg3MS4wLjAuMA..
+            
+            
             let marker = GMSMarker() // creates an instance of GMSMarker
             marker.position = CLLocationCoordinate2D(latitude: room.latitude, longitude: room.longitude) // gets marker position based on room lat and lon
             marker.title = room.name // sets the marker title to the room name

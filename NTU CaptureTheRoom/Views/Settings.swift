@@ -77,14 +77,14 @@ struct Settings: View {
 
                 Spacer()
                 
-                Button(action: {
+                Button(action: { // sign out button
                     signOut()
                 }) {
                     Text("Sign Out")
                         .bold()
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.actionColour)
+                        .background(Color.actionColour) //  button formatting
                         .foregroundColor(.white)
                         .cornerRadius(10)
                         .padding(.horizontal, 50)

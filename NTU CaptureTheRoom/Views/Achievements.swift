@@ -22,11 +22,11 @@ struct Achievements: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 15){
-            Text("Achievements")
+            Text("Achievements") // page title
                 .font(.headline)
                 .bold()
                 .frame(maxWidth: .infinity)
-                .multilineTextAlignment(.center)
+                .multilineTextAlignment(.center) // centers text
             
             AchievementsRow(title: "Rooms Captured", count: roomsCaptured, thresholds: [5,15,30])
             AchievementsRow(title: "Steps Taken", count: stepsTaken, thresholds: [1000,5000,10000]) // create rows and input the correct info
@@ -36,10 +36,10 @@ struct Achievements: View {
         .frame(maxWidth: .infinity, alignment: .center)
         .background(Color.background)
         .cornerRadius(15)
-        .shadow(color: colourSelector.getShadowColour(team: UserLocal.currentUser?.team ?? "n/a"), radius: 5)
+        .shadow(color: colourSelector.getShadowColour(team: UserLocal.currentUser?.team ?? "n/a"), radius: 5) // sets shadow to users team colour
         .padding(.horizontal, 20)
         .onAppear{
-            getDataFromUserLocal()
+            getDataFromUserLocal() // on page appear runs this func
         }
     }
 }
@@ -91,29 +91,32 @@ struct AchievementsRow: View{
                 Spacer()
                 
             }
-            ProgressBarView(progress: progress)
+            ProgressBarView(progress: progress) // shows the progress bar, passes progress value
         }
         .padding()
-        .background(RoundedRectangle(cornerRadius: 10).fill(Color.background.opacity(0.3)))
+        .background(RoundedRectangle(cornerRadius: 10).fill(Color.background.opacity(0.3))) // draws a rectangle around the row
     }
 }
 
 struct ProgressBarView : View{
-    var progress: CGFloat
+    var progress: CGFloat // progress value from 0.0 - 1.0
     
     var body: some View {
-        GeometryReader { geo in
-            ZStack(alignment: .leading){
+        GeometryReader { geo in // reads the available width from the parent view
+            ZStack(alignment: .leading){ // aligns content to the left
+                
+                RoundedRectangle(cornerRadius: 5) // this is the background bar behind the green progress bar
+                    .frame(width: geo.size.width, height: 8) // use full width of parent
+                    .foregroundStyle(Color.gray.opacity(0.3)) // lighter grey than standard background
+                
+                // this is the green progress bar
                 RoundedRectangle(cornerRadius: 5)
-                    .frame(width: geo.size.width, height: 8)
-                    .foregroundStyle(Color.gray.opacity(0.3))
-                RoundedRectangle(cornerRadius: 5)
-                    .frame(width: max(progress * geo.size.width, 10), height: 8)
-                    .foregroundStyle(.green)
-                    .animation(.easeInOut, value: progress)
+                    .frame(width: max(progress * geo.size.width, 10), height: 8) // fills depending on the progress passed into it
+                    .foregroundStyle(.green) // set colour to green
+                    .animation(.easeInOut, value: progress) // little animation when loading in
             }
         }
-        .frame(height: 8)
+        .frame(height: 8) // ensures consistant height for the progress bar 
     }
 }
 

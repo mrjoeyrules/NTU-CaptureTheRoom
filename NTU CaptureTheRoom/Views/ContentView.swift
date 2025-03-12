@@ -14,17 +14,4 @@
 // tWITTER API KEY - HDsoSllsAHK6HjJaT442l7eNh
 // TWITTER SECRET KEY -R bLpcP9hYZr6ApAGarMoGOXRFgwT7UYJVGzFlonBsv9jBwNdpW
 
-
-
-
-import SwiftUI
-import SwiftData
-
-struct ContentView: View {
-
-    var body: some View {
-        VStack{
-            Text("Hello World")
-        }
-    }
-}
+// just storing infomation here

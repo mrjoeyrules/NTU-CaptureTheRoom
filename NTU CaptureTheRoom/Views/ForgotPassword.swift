@@ -10,11 +10,11 @@ import FirebaseAuth
 import SwiftUI
 
 enum ActiveAlert3{
-    case first, second
+    case first, second, third
     
 }
 
-struct ForgotPassword: View {
+struct ForgotPassword: View { // forogt password page. User enters email and sends reset email
     @State var email: String = ""
     @State var showAlert: Bool = false // show alert flag
     @State var error: Error?
@@ -25,17 +25,19 @@ struct ForgotPassword: View {
     
     func sendReset(){
         Auth.auth().sendPasswordReset(withEmail: email){error in
-            if error != nil{
-                print(error!.localizedDescription)
+            if let error = error{
+                if let errorCode = AuthErrorCode(rawValue: error._code){
+                    switch errorCode{
+                    case .invalidEmail: // if email is invalid show alert
+                        self.activeAlert = .first
+                    default:
+                        self.activeAlert = .third // if any other error show default error msg
+                    }
+                }
+            }else{
+                self.activeAlert = .second // if no error display show success alert
             }
-            else if error?.localizedDescription == "The email address is badly formatted."{
-                self.activeAlert = .first
-                self.showAlert.toggle()
-            }
-            else if error?.localizedDescription == nil{
-                self.activeAlert = .second
-                self.showAlert.toggle()
-            }
+            self.showAlert.toggle() // set showalert to true
         }
     }
     
@@ -77,11 +79,11 @@ struct ForgotPassword: View {
                             .background(
                                 RoundedRectangle(
                                     cornerRadius: 20, style: .continuous)
-                                .fill(.actionColour))
-                            .alert(isPresented: $showAlert){
+                                .fill(.actionColour)) // set password reset button to action colour
+                            .alert(isPresented: $showAlert){ // if showalert is true show one of these
                                 switch activeAlert {
                                 case .first:
-                                    return Alert(
+                                    return Alert( // different alerts for possible errors
                                         title: Text("Email address is not valid"),
                                         message: Text("Ensure you enter your accounts email address"),
                                         dismissButton: .default(Text("Try Again")))
@@ -90,6 +92,11 @@ struct ForgotPassword: View {
                                         title: Text("Password Reset sent"),
                                         message: Text("Check your email for a password reset link"),
                                         dismissButton: .default(Text("OK")))
+                                case .third:
+                                    return Alert(
+                                        title: Text("An error occurred"),
+                                        message: Text("Please try again later"),
+                                        dismissButton: .default(Text("Try Again")))
                                 }
                                 
                             }
@@ -98,7 +105,7 @@ struct ForgotPassword: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background{
-                Color.background
+                Color.background // set background
                     .ignoresSafeArea()
             }
         }

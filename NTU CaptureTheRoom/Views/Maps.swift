@@ -12,7 +12,7 @@ import Foundation
 import SwiftUI
 
 
-// Acutal page below this
+// MAPS PAGE
 
 struct Maps: View {
     @State private var userLocation: CLLocationCoordinate2D? = nil
@@ -22,14 +22,14 @@ struct Maps: View {
     @State private var showAlert = false
     @State private var showCaptureAlert = false
     @State private var alertMessage = ""
-    @State private var roomLocations: [RoomLocation] = []
+    @State private var roomLocations: [RoomLocation] = [] // all flags and info
     @State private var hasSetInitialCamera = false
     @State private var showLeaderboard = false
     var body: some View {
             NavigationStack {
                 ZStack {
                     // Map Section
-                    GoogleMapView(userLocation: $userLocation, roomLocations: $roomLocations, hasSetInitialCamera: $hasSetInitialCamera)
+                    GoogleMapView(userLocation: $userLocation, roomLocations: $roomLocations, hasSetInitialCamera: $hasSetInitialCamera) // shows the map
                         .edgesIgnoringSafeArea([.top, .leading, .trailing])
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .background(Color.background)
@@ -45,7 +45,7 @@ struct Maps: View {
                                     .foregroundColor(.white)
                                     .padding(12)
                                     .background(Color.actionColour)
-                                    .clipShape(Circle())
+                                    .clipShape(Circle()) // icon format
                                     .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
                             }
                             .padding(.leading, 10)
@@ -55,14 +55,14 @@ struct Maps: View {
                             // Scan Room Button (Top Right)
                             Button(action: {
                                 scanner.beginScanning { message in
-                                    self.alertMessage = message
+                                    self.alertMessage = message // passes alert infomation from NFC scanning stuff
                                     self.showAlert = true
                                 }
                             }) {
                                 Image(systemName: "dot.radiowaves.up.forward")
                                     .foregroundColor(.white)
                                     .padding(12)
-                                    .background(Color.actionColour)
+                                    .background(Color.actionColour) // icon format
                                     .clipShape(Circle())
                                     .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
                             }
@@ -75,13 +75,13 @@ struct Maps: View {
                     }
 
                     // Leaderboard Overlay
-                    if showLeaderboard {
+                    if showLeaderboard { // if flag is true show the leaderboard
                         Color.black.opacity(0.5)
                             .ignoresSafeArea()
-                            .onTapGesture {
+                            .onTapGesture { // if tap outside of leadboard popup close it
                                 showLeaderboard = false
                             }
-                        LeaderBoard(showLeaderboard: $showLeaderboard)
+                        LeaderBoard(showLeaderboard: $showLeaderboard) // open leaderboard view
                             .transition(.scale)
                             .zIndex(1)
                     }
@@ -91,8 +91,8 @@ struct Maps: View {
                     Alert(title: Text("Room Capture"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
                 }
                 .onAppear {
-                    startListeningForRoomUpdates()
-                    stepManager.requestPermission { granted in
+                    startListeningForRoomUpdates() // on appear of maps page run this
+                    stepManager.requestPermission { granted in // start tracking steps
                         if granted {
                             stepManager.startTrackingSteps()
                         } else {
@@ -102,9 +102,9 @@ struct Maps: View {
                     }
                 }
                 .onDisappear {
-                    stepManager.stopTracking()
+                    stepManager.stopTracking() // on leaving page stop tracking steps
                 }
-                .navigationBarBackButtonHidden(true)
+                .navigationBarBackButtonHidden(true) // nav bar button off
             }
         }
 

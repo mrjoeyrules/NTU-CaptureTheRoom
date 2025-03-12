@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct CustomProgressView: View {
+    // progress page when checking if user is logged in for automatic logins
     var body: some View {
         ZStack {
             Color.black.opacity(0.5) // Background overlay
@@ -18,7 +19,7 @@ struct CustomProgressView: View {
                     .progressViewStyle(CircularProgressViewStyle(tint: Color.actionColour)) // Custom color
                     .scaleEffect(1.5) // Makes it bigger
                 
-                Text("Loading...")
+                Text("Loading...") // loading text
                     .foregroundColor(.white)
                     .font(.headline)
                     .bold()

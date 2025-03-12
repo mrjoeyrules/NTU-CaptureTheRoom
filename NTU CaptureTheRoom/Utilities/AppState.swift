@@ -23,14 +23,14 @@ class AppState: ObservableObject{
         let user = Auth.auth().currentUser
         if let user = user { // If user is logged in
             print("User is logged in: \(user.uid)")
-            self.isLoggedIn = true
+            self.isLoggedIn = true // set flag to true
         } else {
             print("No user logged in")
             self.isLoggedIn = false
         }
     }
     /*
-    @MainActor //  Ensures updates happen on the main thread
+    @MainActor //  Ensures updates happen on the main thread the above function but with FCM included
     func checkUserAuthState() {
 
         Task { //  Runs asynchronously in a safe manner
@@ -52,17 +52,18 @@ class AppState: ObservableObject{
             }
         }
     }
-     */ // would work if APNS were enabled thanks ntu
+    
     
     func updateFCMToken(){
         
-        guard let _ = Messaging.messaging().apnsToken else{
+        guard let _ = Messaging.messaging().apnsToken else{ // supposed to get an apn token from users device doesnt work without apple apn
+     
             print("APNs token not available yet")
             return
         }
         
         
-        Messaging.messaging().token{ token, error in
+        Messaging.messaging().token{ token, error in // gets fcm token
             if let error = error{
                 print("Error fetching fcm: \(error.localizedDescription)")
             }else if let token = token{
@@ -74,7 +75,7 @@ class AppState: ObservableObject{
         }
     }
     
-    private func saveFCMToFS(token: String){
+    private func saveFCMToFS(token: String){  // saves users FCMToken to FS
         guard let user = Auth.auth().currentUser else { return }
         let db = Firestore.firestore()
         db.collection("users").document(user.uid).setData(["fcmToken": token]) { error in
@@ -85,6 +86,8 @@ class AppState: ObservableObject{
             }
         }
     }
+     Would work if APN key was available in Apple Dev
+     */
 }
 
 

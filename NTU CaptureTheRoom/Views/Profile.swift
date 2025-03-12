@@ -18,7 +18,7 @@ struct Profile: View {
     var body: some View {
         ZStack{
             Color.background.ignoresSafeArea()
-            ScrollView{
+            ScrollView{ // make whole page scrollable
                 VStack(spacing: 10){
                     
                     
@@ -33,6 +33,7 @@ struct Profile: View {
                         HStack {
                             Spacer()
                             NavigationLink(destination: Settings()) {
+                                // similar to maps leadboard and scan button
                                 Image(systemName: "gearshape.fill") // Settings Icon
                                     .foregroundColor(.white)
                                     .padding(12)
@@ -51,7 +52,7 @@ struct Profile: View {
                         
                         
                         HStack{
-                            Text("Username: ")
+                            Text("Username: ") // username text
                                 .font(.title2)
                             
                             Text(UserLocal.currentUser?.username ?? "Username not found")
@@ -59,7 +60,7 @@ struct Profile: View {
                                 .fontWeight(.medium)
                         }
                         HStack{
-                            Text("Team: ")
+                            Text("Team: ") // team text
                                 .font(.title2)
                             Text(UserLocal.currentUser?.team ?? "Team Not Found")
                                 .font(.title2)
@@ -89,12 +90,12 @@ struct Profile: View {
                         UserStats()
                     }
                     .padding()
-                    .background(RoundedRectangle(cornerRadius: 15).fill(Color.background.opacity(0.2)))
+                    .background(RoundedRectangle(cornerRadius: 15).fill(Color.background.opacity(0.2))) // box around user stats section
                     .frame(maxWidth: .infinity, alignment: .top)
                     
                     Spacer()
                     VStack{
-                        Achievements()
+                        Achievements() // acheivements view on screen
                     }
                     .padding()
                     .background(RoundedRectangle(cornerRadius: 15).fill(Color.background.opacity(0.2)))
@@ -102,11 +103,11 @@ struct Profile: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background {
-                    Color.background
+                    Color.background // background colour
                         .ignoresSafeArea()
                 }
             }
         }
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.inline) // centers nav bar at top
     }
 }

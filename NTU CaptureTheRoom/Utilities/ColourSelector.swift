@@ -5,11 +5,13 @@
 //  Created by Joseph Cuesta Acevedo on 08/03/2025.
 //
 
+// file for all colour checks and calls for dynamic colouring
+
 import SwiftUI
 
 class ColourSelector: ObservableObject {
     
-    func getTeamColour(team: String) -> Color{
+    func getTeamColour(team: String) -> Color{ // takes in team name and return the set colours
         switch team {
         case "Grey":
             return .background
@@ -22,7 +24,7 @@ class ColourSelector: ObservableObject {
         }
     }
     
-    func getShadowColour(team: String) -> Color{
+    func getShadowColour(team: String) -> Color{ // takes in team name and return set shadow colours
         switch team {
         case "Grey":
             return .black
@@ -35,7 +37,7 @@ class ColourSelector: ObservableObject {
         }
     }
     
-    func getShadowColourLeaderboard(team: String) -> Color{
+    func getShadowColourLeaderboard(team: String) -> Color{ // same as above but with Team in front, didnt feel like string manipulation
         switch team {
         case "Team Grey":
             return .black
@@ -48,7 +50,7 @@ class ColourSelector: ObservableObject {
         }
     }
     
-    func getLeaderboardOutline(team: String) -> Color{
+    func getLeaderboardOutline(team: String) -> Color{ // same as above but with different team grey colour
         switch team{
         case "Team Grey": return .gray
         case "Team Blue": return .sstColour
@@ -57,7 +59,7 @@ class ColourSelector: ObservableObject {
         }
     }
     
-    func getTrophyColourAchievements(currentTier: Int) -> Color{
+    func getTrophyColourAchievements(currentTier: Int) -> Color{ // get the 4 different trophy colours
         switch currentTier{
         case 1: return .brown // bronze
         case 2: return .gray // silver
@@ -68,7 +70,7 @@ class ColourSelector: ObservableObject {
     
     
     
-    func getTrophyColourLeaderboard(for index: Int) -> Color{
+    func getTrophyColourLeaderboard(for index: Int) -> Color{ // same as above but for leaderboard colours
         switch index {
         case 0:
             return .yellow

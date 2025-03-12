@@ -19,7 +19,7 @@ struct Tabs: View { // different pages available.
     
     
     
-    func getStoredUserInfo(completion: @escaping (Result<Void, Error>) -> Void) { // this is needed in the event of persistant logins =
+    func getStoredUserInfo(completion: @escaping (Result<Void, Error>) -> Void) { // this is needed in the event of persistant logins same as from registartion and login
         guard let uid = Auth.auth().currentUser?.uid else {
             completion(.failure(NSError(domain: "No user signed in", code: 0, userInfo: nil)))
             return

@@ -529,6 +529,8 @@ struct Login: View {
                                 .foregroundColor(.white)
                                 .padding()
                         }
+                    
+                    // 3rd party buttons
                         ZStack{
                             HStack{
                                 Button{
@@ -571,7 +573,7 @@ struct Login: View {
                                 .padding()
                             }
                         }
-                        ZStack{
+                        ZStack{ // go back to registration page
                             NavigationLink(destination: Registration()){
                                 Text("Haven't got an Account yet?")
                                     .foregroundColor(.white)
@@ -585,7 +587,7 @@ struct Login: View {
                         Color.background
                             .ignoresSafeArea()
                     }
-                    .navigationBarBackButtonHidden(true)
+                    .navigationBarBackButtonHidden(true) // hide nav bar back button
             }
         }
     }

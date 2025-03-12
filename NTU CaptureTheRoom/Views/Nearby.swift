@@ -5,6 +5,8 @@
 //  Created by Joseph Cuesta Acevedo on 26/01/2025.
 //
 
+
+// page for nearby rooms
 import SwiftUI
 import Firebase
 import FirebaseFirestore
@@ -31,15 +33,15 @@ struct Nearby: View {
     
     
     
-    func fetchRooms() {
+    func fetchRooms() { // fetch rooms from FS
         
-        guard let userLocation = locationManager.userLocation else{
+        guard let userLocation = locationManager.userLocation else{ // get userlocation from location manager
             print("User location unavailable")
             return
         }
         let db = Firestore.firestore()
         
-        guard Auth.auth().currentUser != nil else { // ensure user is authed, wasnt here before.
+        guard Auth.auth().currentUser != nil else { // ensure user is authed
             print("no user authed firestore access blocked")
             return
         }
@@ -58,6 +60,7 @@ struct Nearby: View {
                 
                 for doc in documents {
                     let data = doc.data()
+                    // get all needed room info from FS
                     
                     if let name = data["roomname"] as? String,
                        let latitude = data["roomlat"] as? Double,
@@ -67,7 +70,7 @@ struct Nearby: View {
                         let roomLocation = CLLocation(latitude: latitude, longitude: longitude)
                         let distance = userLocation.distance(from: roomLocation) // dividing from 1000 makes it availabe in kilometers but becuase of how close everything is im leaving it in meters.
                         
-                        var room = RoomLocation2(
+                        var room = RoomLocation2( // CREATE Object of roomlocation2 with data vlues below
                             id: doc.documentID,
                             name: name,
                             latitude: latitude,
@@ -79,7 +82,7 @@ struct Nearby: View {
                         if room.teamOwner == ""{
                             room.teamOwner = "None"
                         }
-                        locations.append(room)
+                        locations.append(room) // append location array with this room
                     } else {
                         print("Skipping invalid document: \(doc.documentID)")
                     }
@@ -93,19 +96,19 @@ struct Nearby: View {
     
     var body: some View {
         VStack{
-            Text("Nearby Rooms")
+            Text("Nearby Rooms") // page title
                 .font(.title)
                 .bold()
-            ScrollView{
+            ScrollView{ // alows page to be scrollable if there a bunch of rooms
                 LazyVStack(spacing: 10){
                     ForEach(roomLocations) { room in
                         HStack{
                             VStack(alignment: .leading){
                                 Text(room.name) // presents room info in box
                                     .font(.headline)
-                                Text("Owned By Team: \(room.teamOwner ?? "None")")
+                                Text("Owned By Team: \(room.teamOwner ?? "None")") // owned by team text
                                     .font(.subheadline)
-                                Text("Distance: \(String(format: "%.2f", room.distance)) m") // two decimal places formatting
+                                Text("Distance: \(String(format: "%.2f", room.distance)) m") // two decimal places formatting how many meters away is the room
                                     .font(.subheadline)
                             }
                             Spacer()
@@ -115,7 +118,7 @@ struct Nearby: View {
                                     openLink(url) // opens mazmaplink from fs in default browser
                                 }) {
                                     Text("Directions")
-                                        .padding()
+                                        .padding() // pink direction button that loads the mazmaplink in browser
                                         .foregroundColor(.white)
                                         .background(
                                             RoundedRectangle(cornerRadius: 20, style: .continuous)
@@ -137,8 +140,8 @@ struct Nearby: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.background.ignoresSafeArea())
-        .navigationBarBackButtonHidden(true)
+        .background(Color.background.ignoresSafeArea()) // background colour
+        .navigationBarBackButtonHidden(true) // nav back bar hidden
         .onAppear{
             fetchRooms()
         }
@@ -148,28 +151,29 @@ struct Nearby: View {
     }
 }
 
-class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
+class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate { // getting user locations
     private var locationManager = CLLocationManager()
+    // very similar to google maps page for location
     @Published var userLocation: CLLocation?
     
     override init(){
         super.init()
         locationManager.delegate = self
-        locationManager.desiredAccuracy = kCLLocationAccuracyBest
-        locationManager.requestWhenInUseAuthorization()
-        locationManager.startUpdatingLocation()
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest // best accuracy mode
+        locationManager.requestWhenInUseAuthorization() // ensure perms are set
+        locationManager.startUpdatingLocation() // start updating users location
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]){
-        if let location = locations.last{
+        if let location = locations.last{ // get users location on location update
             DispatchQueue.main.async {
-                self.userLocation = location
+                self.userLocation = location // set userlocation variable to users locations
             }
         }
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error){
-        print("Failed to find users locations: \(error.localizedDescription)")
+        print("Failed to find users locations: \(error.localizedDescription)") // if errored display error
     }
 }
 

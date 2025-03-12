@@ -7,6 +7,8 @@
 
 
 // User info class to be used throughout program
+
+// getters and setters for the current logged in user
 import FirebaseAuth
 import Foundation
 class UserLocal{

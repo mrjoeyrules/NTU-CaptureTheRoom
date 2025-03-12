@@ -25,17 +25,17 @@ struct UserStats: View {
             StatRow(icon: "house.and.flag", title: "Total Rooms Captured", value: "\(roomsCapped)")
         }
         .padding()
-        .background(Color.background)
+        .background(Color.background) // page formatting
         .cornerRadius(15)
-        .shadow(color: colourSelector.getShadowColour(team: UserLocal.currentUser?.team ?? "n/a"), radius: 5)
+        .shadow(color: colourSelector.getShadowColour(team: UserLocal.currentUser?.team ?? "n/a"), radius: 5) // get shadow colourbased on users team
         .padding(.horizontal, 20)
         .onAppear{
-            getDataFromUserLocal()
+            getDataFromUserLocal() // on page appear run below function
         }
     }
     
     
-    func getDataFromUserLocal(){
+    func getDataFromUserLocal(){ // stores data from userlocal into local variables
         totalSteps = UserLocal.currentUser?.totalSteps ?? 0
         dateJoined = UserLocal.currentUser?.dateJoined ?? ""
         totalXp = UserLocal.currentUser?.totalXp ?? 0

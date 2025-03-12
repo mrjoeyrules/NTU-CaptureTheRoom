@@ -16,7 +16,7 @@ class NFCScanner: NSObject, NFCNDEFReaderSessionDelegate {
     var session: NFCNDEFReaderSession?
 
     func beginScanning(completion: @escaping (String) -> Void) {
-        guard NFCNDEFReaderSession.readingAvailable else {
+        guard NFCNDEFReaderSession.readingAvailable else { // checks is scanning is availabe on the device
             completion("NFC reading not available on this device")
             return
         }
@@ -31,12 +31,12 @@ class NFCScanner: NSObject, NFCNDEFReaderSessionDelegate {
     private var scanCompletion: ((String) -> Void)?
 
     func readerSession(_ session: NFCNDEFReaderSession, didDetectNDEFs messages: [NFCNDEFMessage]) {
-        for message in messages {
-            for record in message.records {
-                if let rawString = String(data: record.payload, encoding: .utf8) {
-                    print("scanned data: \(rawString)")
-                    parseNFCData(rawString) { message in
-                        self.scanCompletion?(message)
+        for message in messages { // if a message in messages basically if something in data from tag
+            for record in message.records { // for the record in that message
+                if let rawString = String(data: record.payload, encoding: .utf8) { // get the record payload from the tag
+                    print("scanned data: \(rawString)") // print raw value of scan
+                    parseNFCData(rawString) { message in // run the parseNFCData function with the raw string value from tag
+                        self.scanCompletion?(message) // return message for alert to show
                     }
                 }
             }
@@ -44,7 +44,7 @@ class NFCScanner: NSObject, NFCNDEFReaderSessionDelegate {
     }
 
     func readerSession(_ session: NFCNDEFReaderSession, didInvalidateWithError error: any Error) {
-        print("NFC scanning failed: \(error.localizedDescription)")
+        print("NFC scanning failed: \(error.localizedDescription)") // if scan with error print error
     }
 
     func saveUserStats() {
@@ -158,11 +158,11 @@ class NFCScanner: NSObject, NFCNDEFReaderSessionDelegate {
                     } else {
                         UserLocal.currentUser?.xp = totalXp
                     }
-                    UserLocal.currentUser?.roomsCapped += 1
-                    self.saveUserStats()
+                    UserLocal.currentUser?.roomsCapped += 1 // users rooms capped value +1
+                    self.saveUserStats() // run saveuserstats fuction after all level, xp and stats have been updated
 
-                    UserLocal.currentUser?.xpStored = 0
-                    completion("Successfully claimed \(roomName) for \(team)")
+                    UserLocal.currentUser?.xpStored = 0 // resets stored xp value
+                    completion("Successfully claimed \(roomName) for \(team)") // alert message returns
                 }
             }
         }
