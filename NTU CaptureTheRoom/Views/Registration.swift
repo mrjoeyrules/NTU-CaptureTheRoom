@@ -150,6 +150,7 @@ struct Registration: View {
                 print(error?.localizedDescription ?? "error")
             }
             if twitterCredential != nil { // if creds are not nil
+                print("Twitter creds: \(twitterCredential)")
                 Auth.auth().signIn(with: twitterCredential!) { authResult, error in // FB auth using twitter credentials
                     if let error = error as? NSError {
                         // Check error code instead of localizedDescription
@@ -208,13 +209,14 @@ struct Registration: View {
     }
 
     func RegisterGithub() {
-        print("Register with Github")
+        print("github")
         gitProvider.getCredentialWith(nil) { gitCredential, error in // same as twitter get creds using github provider
             if error != nil {
                 print(error?.localizedDescription ?? "error")
             }
             if gitCredential != nil {
                 Auth.auth().signIn(with: gitCredential!) { authResult, error in // sign in on FB using git creds
+                    print("git creds: \(gitCredential)")
                     if let error = error as? NSError {
                         print(error.code)
                         // Check error code instead of localizedDescription
@@ -228,10 +230,9 @@ struct Registration: View {
                         }
                         return
                     }
-
-                    guard let oauthCredential = authResult?.credential as? OAuthCredential else { return } // outhcreds different than twitter for GH.
                     guard let user = authResult?.user else { return } // get auth
                     checkIfUserDocExists(uid: user.uid) { result in // check if doc exists
+                        print("user uid: \(user.uid)")
                         switch result {
                         case let .success(exists):
                             if exists {
@@ -532,6 +533,8 @@ struct Registration: View {
                             }
                             .padding()
 
+                            /* // had to remove other login methods becuase all of a sudden they refuse to redirect back and i cannot figure it out at all
+
                             Button {
                                 RegisterX()
                             } label: {
@@ -557,6 +560,7 @@ struct Registration: View {
                                 }
                             }
                             .padding()
+                             */
                         }
                     }
                     ZStack {

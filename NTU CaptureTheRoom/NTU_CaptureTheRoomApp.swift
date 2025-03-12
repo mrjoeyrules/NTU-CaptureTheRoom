@@ -14,7 +14,6 @@ import FirebaseAuth
 import FirebaseFirestore
 import FirebaseMessaging
 import UserNotifications
-import FirebaseAppCheck
 
 
 @main
@@ -55,13 +54,14 @@ struct NTU_CaptureTheRoomApp: App {
 class AppDelegate : NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate, MessagingDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions:
                      [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool{
-        AppCheck.setAppCheckProviderFactory(AppCheckDebugProviderFactory())
         //configMessaging(application)
         return true
     }
-    func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
+    func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
+        
         return GIDSignIn.sharedInstance.handle(url)
     }
+
     /*
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data){
         Messaging.messaging().apnsToken = deviceToken

@@ -545,7 +545,7 @@ struct Login: View {
                                     }
                                 }
                                 .padding()
-                                
+                                /* // had to remove other login methods becuase all of a sudden they refuse to redirect back and i cannot figure it out at all
                                 Button{
                                     loginWithX()
                                 } label: {
@@ -571,6 +571,7 @@ struct Login: View {
                                     }
                                 }
                                 .padding()
+                                 */
                             }
                         }
                         ZStack{ // go back to registration page
