@@ -1,3 +1,11 @@
+//
+//  ForgotPassword.swift
+//  NTU CaptureTheRoom
+//
+//  Created by Joseph Cuesta Acevedo on 29/11/2024.
+//
+
+
 
 
 import FirebaseAuth
@@ -12,8 +20,7 @@ enum ActiveAlert { // set cases for the active alert
 }
 
 struct Registration: View {
-    let twitterProvider = OAuthProvider(providerID: "twitter.com")
-    let gitProvider = OAuthProvider(providerID: "github.com") // providers for third party auth
+    let twitterProvider = OAuthProvider(providerID: "twitter.com") // providers for third party auth
 
     // variables for various uses within page.
     @State var email: String = "" // inputed email
@@ -60,6 +67,7 @@ struct Registration: View {
             let totalsteps = data["totalsteps"] as! Int
             let roomscapped = data["roomscapped"] as! Int // get all info from FS and store in variables
             let level = data["level"] as! Int
+            let showTutorial = data["showtutorial"] as! Bool
             let totalXp = data["totalxp"] as! CGFloat
             var formattedDate: String = "Unknown Date"
             if let dateJoined = data["createdAt"] as? Timestamp {
@@ -72,6 +80,7 @@ struct Registration: View {
             userLocal.setUpStatus = setUpStatus
             userLocal.user = Auth.auth().currentUser // set all info in an object of UserLocal
             userLocal.level = level
+            userLocal.showTutorial = showTutorial
             userLocal.roomsCapped = roomscapped
             userLocal.dateJoined = formattedDate
             userLocal.totalSteps = totalsteps
@@ -120,6 +129,7 @@ struct Registration: View {
             "createdAt": Timestamp(date: Date()),
             "level": UserLocal.currentUser?.level ?? 1, // when creating an account set all info in FS
             "xp": UserLocal.currentUser?.xp ?? 0,
+            "showtutorial": UserLocal.currentUser?.showTutorial ?? true,
             "username": "unselected",
             "team": "unselected",
             "setupstatus": "in-progress",
@@ -210,64 +220,67 @@ struct Registration: View {
 
     func RegisterGithub() {
         print("github")
-        gitProvider.getCredentialWith(nil) { gitCredential, error in // same as twitter get creds using github provider
-            if error != nil {
-                print(error?.localizedDescription ?? "error")
+        let provider = OAuthProvider(providerID: "github.com")
+
+        provider.getCredentialWith(nil) { gitCredential, error in
+            if let error = error {
+                print("Error getting GitHub credential: \(error.localizedDescription)")
+                return
             }
-            if gitCredential != nil {
-                Auth.auth().signIn(with: gitCredential!) { authResult, error in // sign in on FB using git creds
-                    print("git creds: \(gitCredential)")
+
+            if let gitCredential = gitCredential {
+                Auth.auth().signIn(with: gitCredential) { authResult, error in
                     if let error = error as? NSError {
-                        print(error.code)
-                        // Check error code instead of localizedDescription
+                        print("Error signing in with GitHub: \(error.localizedDescription)")
+                        // Handle specific error codes
                         switch AuthErrorCode(rawValue: error.code) {
-                        case .accountExistsWithDifferentCredential: // same error codes for 3rd party
+                        case .accountExistsWithDifferentCredential:
                             showAlert(for: .sixth)
                         case .userDisabled:
                             showAlert(for: .seventh)
                         default:
-                            print("Error signing in with GitHub: \(error.localizedDescription)")
+                            print("Unknown error: \(error.localizedDescription)")
                         }
                         return
                     }
-                    guard let user = authResult?.user else { return } // get auth
-                    checkIfUserDocExists(uid: user.uid) { result in // check if doc exists
-                        print("user uid: \(user.uid)")
+
+                    guard let user = authResult?.user else { return }
+                    checkIfUserDocExists(uid: user.uid) { result in
                         switch result {
-                        case let .success(exists):
+                        case .success(let exists):
                             if exists {
-                                isFirstLogin = false // first login flag is flase if doc exists
-                                getStoredUserInfo { result in // get stored user info from FS
+                                isFirstLogin = false
+                                getStoredUserInfo { result in
                                     switch result {
                                     case .success:
                                         print("User data stored successfully")
-                                        isGitLogin = true // if successful gitlogin is true
+                                        isGitLogin = true
                                         showAlert(for: .second)
                                     case .failure:
                                         print("Failed to get user data")
                                     }
                                 }
                             } else {
-                                isFirstLogin = true // doc doesnt exist them firstlogin is true
-                                saveUserDateToFirestore(user: user, loginType: "GitHub") { _ in // save userdata to FS for first login
-                                    if let error2 = error {
-                                        print(error2.localizedDescription)
+                                isFirstLogin = true
+                                saveUserDateToFirestore(user: user, loginType: "GitHub") { error in
+                                    if let error = error {
+                                        print("Error saving user data: \(error.localizedDescription)")
                                     }
-                                    isGitLogin = true // git login is true
+                                    isGitLogin = true
                                 }
-                                getStoredUserInfo { result in // get userinfo from fs
+                                getStoredUserInfo { result in
                                     switch result {
                                     case .success:
                                         print("User data stored successfully")
-                                        isGitLogin = true // git login is true
+                                        isGitLogin = true
                                         showAlert(for: .second)
                                     case .failure:
                                         print("Failed to get user data")
                                     }
                                 }
                             }
-                        case let .failure(error):
-                            print(error.localizedDescription)
+                        case .failure(let error):
+                            print("Error checking user document: \(error.localizedDescription)")
                         }
                     }
                 }
@@ -375,11 +388,11 @@ struct Registration: View {
                     case .weakPassword:
                         showAlert(for: .eighth)
                     default:
-                        if error.domain == "FIRAuthErrorDomain", let underlyingError = error.userInfo[NSUnderlyingErrorKey] as? NSError,
-                           let errorDetails = underlyingError.userInfo["FIRAuthErrorUserInfoDeserializedResponseKey"] as? [String: Any],
-                           let message = errorDetails["message"] as? String,
+                        if error.domain == "FIRAuthErrorDomain", let underlyingError = error.userInfo[NSUnderlyingErrorKey] as? NSError, // if the error contains FIRAuthErrorDomain
+                           let errorDetails = underlyingError.userInfo["FIRAuthErrorUserInfoDeserializedResponseKey"] as? [String: Any], // and underlying error = FIRAuthErrorUserInfoDeserializedResponseKey
+                           let message = errorDetails["message"] as? String, // and the message contains PasswordDoesNotMeetRequirements
                            message.contains("PASSWORD_DOES_NOT_MEET_REQUIREMENTS") {
-                            showAlert(for: .eighth)
+                            showAlert(for: .eighth) // show eight alert type
                         } // for some reason password requirment NS code flag doesnt work so had to manually check the error
 
                         print("Error signing in: \(error.localizedDescription)") // if not a password requirement error print error info
@@ -547,7 +560,7 @@ struct Registration: View {
                                 }
                             }
                             .padding()
-
+                            
                             Button {
                                 RegisterGithub()
                             } label: {
@@ -561,6 +574,7 @@ struct Registration: View {
                             }
                             .padding()
                              */
+                             
                         }
                     }
                     ZStack {

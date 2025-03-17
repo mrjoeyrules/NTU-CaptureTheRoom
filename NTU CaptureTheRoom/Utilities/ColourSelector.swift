@@ -64,7 +64,7 @@ class ColourSelector: ObservableObject {
         case 1: return .brown // bronze
         case 2: return .gray // silver
         case 3: return .yellow // gold
-        default: return .black // locked trophy
+        default: return .white // locked trophy
         }
     }
     

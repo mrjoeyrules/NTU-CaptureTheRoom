@@ -18,7 +18,7 @@ struct Tabs: View { // different pages available.
     }
     
     
-    
+    // same function from registraton and login
     func getStoredUserInfo(completion: @escaping (Result<Void, Error>) -> Void) { // this is needed in the event of persistant logins same as from registartion and login
         guard let uid = Auth.auth().currentUser?.uid else {
             completion(.failure(NSError(domain: "No user signed in", code: 0, userInfo: nil)))
@@ -41,6 +41,7 @@ struct Tabs: View { // different pages available.
             let team = data["team"] as? String ?? "unknown"
             let xp = data["xp"] as! CGFloat
             let totalsteps = data["totalsteps"] as! Int
+            let showTutorial = data["showtutorial"] as! Bool
             let roomscapped = data["roomscapped"] as! Int
             let level = data["level"] as! Int
             let totalXp = data["totalxp"] as! CGFloat
@@ -55,6 +56,7 @@ struct Tabs: View { // different pages available.
             userLocal.setUpStatus = setUpStatus
             userLocal.user = Auth.auth().currentUser
             userLocal.level = level
+            userLocal.showTutorial = showTutorial
             userLocal.roomsCapped = roomscapped
             userLocal.dateJoined = formattedDate
             userLocal.totalSteps = totalsteps

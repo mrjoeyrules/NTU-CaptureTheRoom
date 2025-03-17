@@ -5,6 +5,8 @@
 //  Created by Joseph Cuesta Acevedo on 08/03/2025.
 //
 
+
+// this usually only shows for a few seconds at most
 import SwiftUI
 
 struct CustomProgressView: View {
@@ -16,7 +18,7 @@ struct CustomProgressView: View {
             
             VStack(spacing: 20) {
                 ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle(tint: Color.actionColour)) // Custom color
+                    .progressViewStyle(CircularProgressViewStyle(tint: Color.actionColour)) // Custom color circular loading thing
                     .scaleEffect(1.5) // Makes it bigger
                 
                 Text("Loading...") // loading text

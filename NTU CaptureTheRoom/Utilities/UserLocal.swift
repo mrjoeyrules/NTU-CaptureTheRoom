@@ -37,6 +37,16 @@ class UserLocal{
             _username = newUsername
         }
     }
+    
+    private var _showTutorial: Bool = true
+    var showTutorial: Bool{
+        get{
+            return _showTutorial
+        }
+        set(newShowTutorial){
+            _showTutorial = newShowTutorial
+        }
+    }
     private var _setUpStatus: String = ""
     var setUpStatus: String{
         get{

@@ -57,11 +57,24 @@ class AppDelegate : NSObject, UIApplicationDelegate, UNUserNotificationCenterDel
         //configMessaging(application)
         return true
     }
-    func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
-        
-        return GIDSignIn.sharedInstance.handle(url)
-    }
 
+    
+    func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
+        if let incomingURL = userActivity.webpageURL {
+            // Handle the Firebase Auth URL
+            let handled = Auth.auth().canHandle(incomingURL)
+            return handled
+        }
+        return false
+    }
+    
+    func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
+        if Auth.auth().canHandle(url) {
+            return true
+        }
+        return false
+    }
+    
     /*
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data){
         Messaging.messaging().apnsToken = deviceToken

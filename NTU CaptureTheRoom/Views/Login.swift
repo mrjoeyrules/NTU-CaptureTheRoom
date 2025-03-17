@@ -69,6 +69,7 @@ struct Login: View {
             let totalsteps = data["totalsteps"] as! Int
             let roomscapped = data["roomscapped"] as! Int
             let level = data["level"] as! Int
+            let showTutorial = data["showtutorial"] as! Bool
             let totalXp = data["totalxp"] as! CGFloat
             var formattedDate: String = "Unknown Date"
             if let dateJoined = data["createdAt"] as? Timestamp{
@@ -81,6 +82,7 @@ struct Login: View {
             userLocal.setUpStatus = setUpStatus
             userLocal.user = Auth.auth().currentUser
             userLocal.level = level
+            userLocal.showTutorial = showTutorial
             userLocal.roomsCapped = roomscapped
             userLocal.dateJoined = formattedDate
             userLocal.totalSteps = totalsteps
@@ -136,6 +138,7 @@ struct Login: View {
             "createdAt": Timestamp(date: Date()),
             "level": UserLocal.currentUser?.level ?? 1,
             "xp": UserLocal.currentUser?.xp ?? 0,
+            "showtutorial": UserLocal.currentUser?.showTutorial ?? true,
             "username": "unselected",
             "fcmToken": "", // create the space in fs for later use
             "team": "unselected",

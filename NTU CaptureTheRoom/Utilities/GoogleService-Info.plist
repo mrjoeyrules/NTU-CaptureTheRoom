@@ -29,8 +29,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true/>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:1087587490413:ios:466f7e646485b8733b3d64</string>
-	<key>AUTH_DOMAIN</key>
-	<string>capturetheroom-ntu.firebaseapp.com</string>
+	<string>1:1087587490413:ios:911b0191cf4d49a33b3d64</string>
 </dict>
 </plist>

@@ -17,17 +17,17 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>app-1-1087587490413-ios-466f7e646485b8733b3d64</string>
+				<string>app-1-1087587490413-ios-911b0191cf4d49a33b3d64</string>
 			</array>
 		</dict>
 		<dict>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>GitHub</string>
+			<string></string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.1087587490413-uel00co9nn2l1qtbfjpb3aogfomgm30u</string>
+				<string>capturetheroom-ntu.firebaseapp</string>
 			</array>
 		</dict>
 	</array>

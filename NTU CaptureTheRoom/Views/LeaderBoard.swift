@@ -1,3 +1,12 @@
+//
+//  LeaderBoard.swift
+//  NTU CaptureTheRoom
+//
+//  Created by Joseph Cuesta Acevedo on 07/03/2025
+//
+
+
+
 import SwiftUI
 import FirebaseFirestore
 
