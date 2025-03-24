@@ -143,6 +143,7 @@ struct GoogleMapView: UIViewRepresentable {
 
     func updateUIView(_ uiView: GMSMapView, context: Context) { // updates map ui view
         applyMapStyle(to: uiView)
+        
         if let userLocation = userLocation, !hasSetInitialCamera {
             let cameraUpdate = GMSCameraUpdate.setTarget(userLocation, zoom: 17.5) // sets camera to users location at 17.5 zoom
             uiView.moveCamera(cameraUpdate) // move the camera with the users on the locaiton of camera update
@@ -150,6 +151,9 @@ struct GoogleMapView: UIViewRepresentable {
                 self.hasSetInitialCamera = true
             }
         }
+        
+        uiView.clear() // Removes all current markers and overlays from the map
+
 
         for room in roomLocations { // code from Google Maps Platform DOCS - https://developers.google.com/maps/documentation/ios-sdk/map-with-marker?_gl=1*morkne*_up*MQ..*_ga*NjQwODkxNjE5LjE3NDE3ODM4Njk.*_ga_NRWSTWS78N*MTc0MTc4Mzg2OC4xLjAuMTc0MTc4Mzg3MS4wLjAuMA..
             
