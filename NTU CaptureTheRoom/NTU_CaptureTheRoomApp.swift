@@ -18,7 +18,7 @@ import UserNotifications
 
 @main
 struct NTU_CaptureTheRoomApp: App {
-    
+    @StateObject private var tutorialManager = TutorialManager()
     @UIApplicationDelegateAdaptor(AppDelegate.self) var Delegate
     @StateObject private var appState = AppState()
     init(){
@@ -33,6 +33,7 @@ struct NTU_CaptureTheRoomApp: App {
                 CustomProgressView()
             } else if appState.isLoggedIn == true{
                 Tabs(selectedTab: .maps) // if is logged in is true go to maps
+                    .environmentObject(tutorialManager) // inject this into tabs to ensure that popup plays when triggered.
             }else{
                 Registration() // else go to registration
             }

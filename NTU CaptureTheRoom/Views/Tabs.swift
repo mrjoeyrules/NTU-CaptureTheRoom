@@ -10,7 +10,10 @@ import FirebaseAuth
 import FirebaseFirestore
 
 struct Tabs: View { // different pages available.
+    
+    @EnvironmentObject var tutorial: TutorialManager // bring tutorial manager in to use
     @State var selectedTab: Tab = .maps
+    
     enum Tab: Hashable {
         case profile
         case maps
@@ -103,6 +106,11 @@ struct Tabs: View { // different pages available.
                 }
                 .tag(Tab.nearby)
             }
+            if tutorial.isTutorialActive { // if is tutorial active is true then shop the popup on the current step.
+                TutorialPopup(step: tutorial.steps[tutorial.currentStep]){
+                    tutorial.nextStep()
+                }
+            }
         }
         .navigationBarBackButtonHidden(true) // remove nav bar back button
         .tint(Color.actionColour)
@@ -114,7 +122,12 @@ struct Tabs: View { // different pages available.
         .onAppear{
             UITabBar.appearance().unselectedItemTintColor = UIColor.lightGray // change systemimage colour for unselected items
             
-            getStoredUserInfo { result in
+            if UserDefaults.standard.bool(forKey: "hasSeenTutorial") == false{ // if user default labeled hasseentutorial is false then show tutorial
+                tutorial.isTutorialActive = true
+                UserDefaults.standard.set(true, forKey: "hasSeenTutorial") // after set to true to not show tutorial again unless set.
+            }
+            
+            getStoredUserInfo { result in // get user info if instant login
                 switch result {
                 case .success:
                     print("User data stored successfully")

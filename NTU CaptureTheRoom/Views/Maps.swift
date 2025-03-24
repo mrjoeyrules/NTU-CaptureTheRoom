@@ -18,7 +18,7 @@ import SwiftUI
 
 struct Maps: View {
     @State private var userLocation: CLLocationCoordinate2D? = nil
-    
+    @StateObject var tutorial = TutorialManager()
     @State private var scanner = NFCScanner()
     @StateObject private var stepManager = StepTrackerManager()
     @State private var showAlert = false
@@ -75,12 +75,11 @@ struct Maps: View {
                     
                     Spacer() // Pushes everything else down
                 }
-                if UserLocal.currentUser?.showTutorial == true { // if flag is true show the tutorial
-                    Color.black.opacity(0.5)
-                        .ignoresSafeArea()
-                    PressScanButton() // open leaderboard view
-                        .transition(.scale)
-                        .zIndex(1)
+                // show tutorial if flag is true
+                if tutorial.isTutorialActive {
+                    TutorialPopup(step: tutorial.steps[tutorial.currentStep]){
+                        tutorial.nextStep()
+                    }
                 }
                 
                 

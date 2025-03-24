@@ -10,7 +10,9 @@ import SwiftUI
 
 struct Settings: View {
     @ObservedObject var settings = MapSettings()
-
+    @EnvironmentObject var tutorial: TutorialManager
+    
+    
     func signOut() {
         do{
             try Auth.auth().signOut() // signs the user out within the firebase auth
@@ -75,6 +77,23 @@ struct Settings: View {
                 }
                 .padding(.top, 10)
 
+                Spacer()
+                Button(action: { // tutorial reset
+                    UserDefaults.standard.set(false, forKey: "hasSeenTutorial") // set default flag to false
+                    tutorial.restartTutorial() // run restart func
+                }) {
+                    Text("Replay Tutorial") // formatting for button
+                        .bold()
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.actionColour) //  button formatting
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                        .padding(.horizontal, 50)
+                }
+                
+                
+                
                 Spacer()
                 
                 Button(action: { // sign out button
