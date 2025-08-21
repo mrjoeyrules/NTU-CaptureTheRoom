@@ -3,7 +3,6 @@
 //  NTU CaptureTheRoom
 //
 //  Created by Joseph Cuesta Acevedo on 25/11/2024.
-// maps API Key - AIzaSyAf-EIBS2MDCudvg-QyYmOKmsmRNYj1gGA
 
 import SwiftUI
 import SwiftData
